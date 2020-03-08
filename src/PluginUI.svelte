@@ -1,13 +1,10 @@
 <script>
-  //import Global CSS from the svelte boilerplate
-  //contains Figma color vars, spacing vars, utility classes and more
   import { GlobalCSS } from "figma-plugin-ds-svelte";
   import Padding from "./padding.svg";
   import Horizontal from "./horizontal.svg";
   import Vertical from "./vertical.svg";
   import AutoComplete from "simple-svelte-autocomplete";
 
-  //import some Svelte Figma UI components
   import {
     Button,
     Icon,
@@ -19,34 +16,23 @@
     Switch
   } from "figma-plugin-ds-svelte";
 
-  var styles = [];
+  let styles = [];
   let availableFontNames = [];
   let availableFontWeights = [];
   let availableFamilies = [];
   let availableWeights = [];
   let selectedStyles = [];
-  var fontWeight;
+  let fontWeight;
   let familyName;
 
-  //this is a reactive variable that will return false when a value is selected from
-  //the select menu, its value is bound to the primary buttons disabled prop
-
   $: disabled = !selectedStyles.length;
+  $: size = styles.length > 8 ? 8 : styles.length
   $: {
-    console.log({ familyName });
     availableWeights = availableFamilies
       .filter(n => n.fontName.family === familyName)
       .map(n => n.fontName.style);
   }
-  // $: {
-  //   let names = [...new Set(selectedStyles.map(n => n.familyName.family))]
-  //   if (names.length === 1) familyName = names[0];
-  //   if (names.length > 1) familyName = "-"
-  // 	console.log({familyName, names})
-  // }
 
-  const colors = ["White", "Red", "Yellow", "Green", "Blue", "Black"];
-  let selectedColor;
 
   function update() {
     let originalFamilyNames = getFamilyNames(selectedStyles);
@@ -75,16 +61,12 @@
     parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
   }
 
-  function changefamilyName(e) {
-    console.log("changing", { e });
-  }
-
   function getFamilyNames(selectedStyles) {
-    return [...new Set(selectedStyles.map(n => n.fontName.family))].join(" ");
+    return [...new Set(selectedStyles.map(n => n.fontName.family))].join(", ");
   }
 
   function getFontWeights(selectedStyles) {
-    return [...new Set(selectedStyles.map(n => n.fontName.style))].join(" ");
+    return [...new Set(selectedStyles.map(n => n.fontName.style))].join(", ");
   }
 
   function setSelectedStyles(e) {
@@ -95,19 +77,10 @@
     fontWeight = getFontWeights(selectedStyles);
   }
 
-  function setSelectedFamily(e) {
-    familyName = e.target.value;
-  }
-
-  function setSelectedWeight(e) {
-    fontWeight = e.target.value;
-  }
-
   onmessage = event => {
     if (event.data.pluginMessage.type === "postStyles") {
       styles = event.data.pluginMessage.styles;
       availableFamilies = event.data.pluginMessage.availableFonts;
-      console.log(availableFamilies[5]);
       availableFontNames = [
         ...new Set(
           event.data.pluginMessage.availableFonts.map(n => n.fontName.family)
@@ -125,8 +98,15 @@
     margin: 0;
   }
 
-  .w-full {
+  hr {
+    border: 0;
+    height: 1px;
+    background: var(--silver);
+  }
+
+  .type-wrapper {
     width: 100%;
+    overflow-x: hidden;
   }
 
   .type-wrapper:focus {
@@ -138,6 +118,9 @@
     border: 0;
     font-size: var(--font-size-xsmall);
     font-family: var(--font-stack);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
   }
 
   .type-item:hover {
@@ -145,18 +128,79 @@
   }
 
   :global(.autocomplete) {
+    margin: 0 var(--size-xxsmall);
     position: relative;
+    font-family: var(--font-stack) !important;
+    font-size: var(--font-size-xsmall);
   }
 
   :global(.autocomplete-input) {
     height: auto !important;
+    border: 1px solid var(--silver);
+    border-radius: 2px;
+    padding: var(--size-xxsmall) !important;
+  }
+
+  :global(.autocomplete-input:focus) {
+    outline: none;
+    border: 1px solid var(--grey);
   }
 
   :global(.autocomplete-list) {
     position: absolute !important;
     top: 100% !important;
-    font-family: var(--font-stack) !important;
-    font-size: var(--font-size-xsmall);
+    margin-top: -1px;
+    padding: 0 !important;
+    border: 1px solid var(--silver) !important;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  :global(.autocomplete-list-item) {
+    padding: var(--size-xxsmall) var(--size-xxsmall) !important;
+  }
+
+  :global(.autocomplete-list-item:hover) {
+    background-color: var(--hover-fill) !important;
+    border: 0;
+    color: inherit !important;
+  }
+
+  :global(.autocomplete-list-item.selected) {
+    background-color: var(--blue) !important;
+    border: 0;
+  }
+
+  :global(.autocomplete-list-item.selected:hover) {
+    color: white !important;
+  }
+
+  :global(select::-webkit-scrollbar) {
+    width: 9px;
+  }
+
+  :global(select::-webkit-scrollbar-thumb) {
+    background-color: var(--black3);
+    border-radius: 9px;
+    border: 2px solid white;
+  }
+  :global(body::-webkit-scrollbar) {
+    width: 9px;
+  }
+
+  :global(body::-webkit-scrollbar-thumb) {
+    background-color: var(--black3);
+    border-radius: 9px;
+    border: 2px solid white;
+  }
+  :global(.autocomplete-list::-webkit-scrollbar) {
+    width: 9px;
+  }
+
+  :global(.autocomplete-list::-webkit-scrollbar-thumb) {
+    background-color: var(--black3);
+    border-radius: 9px;
+    border: 2px solid white;
   }
 
   select {
@@ -164,43 +208,58 @@
   }
 </style>
 
-<div class="wrapper p-xxsmall">
-  <div class="styles-wrapper">
+<div class="p-xxsmall">
+  <div class="styles-wrapper pr-xxsmall">
     {#if styles.length}
-      <Type weight="bold" size="small">Found styles</Type>
+      <Label>{styles.length} Text Styles</Label>
       <select
         multiple
-        class="w-full type-wrapper"
-        size="8"
+        class="type-wrapper"
+        {size}
         value={styles}
         on:change={setSelectedStyles}>
         {#each styles as style}
           <option
             value={JSON.stringify(style)}
-            class="flex w-full type-item pt-xxsmall pb-xxsmall">
+            class="flex type-item pt-xxsmall pb-xxsmall pl-xxsmall pr-xxsmall">
             {style.name}
           </option>
         {/each}
       </select>
     {:else}
-      <Type weight="bold" size="small">No styles found</Type>
+      <Label>No Text Styles found.</Label>
     {/if}
   </div>
 
-  <Label>Family</Label>
-  <AutoComplete items={availableFontNames} bind:selectedItem={familyName} />
-
-  <Label>Weight</Label>
-  <AutoComplete items={availableWeights} bind:selectedItem={fontWeight} />
-
-  <div class="mt-small">
-    <fieldset {disabled}>
-      <div class="flex">
-        <Button {disabled} class="mr-xxsmall" on:click={update}>
-          Update styles
-        </Button>
-        <Button variant="secondary" on:click={cancel}>Cancel</Button>
-      </div>
-    </fieldset>
+  <hr class="mt-small mb-xsmall ml-xxsmall mr-xxsmall" />
+  <div class="ml-xxsmall mr-xxsmall mb-xsmall">
+    <div class="mb-xxsmall">
+      <Type weight="bold">Properties</Type>
+    </div>
+    {#if selectedStyles.length}
+      <Type>Only changed values get updated.</Type>
+    {:else}
+      <Type>Select one or more styles to begin.</Type>
+    {/if}
   </div>
+  <fieldset {disabled}>
+    <Label>Family</Label>
+    <AutoComplete
+      placeholder="Font family"
+      items={availableFontNames}
+      bind:selectedItem={familyName} />
+
+    <Label>Weight</Label>
+    <AutoComplete
+      placeholder="Font weight"
+      items={availableWeights}
+      bind:selectedItem={fontWeight} />
+
+    <div class="mt-small flex ml-xxsmall mr-xxsmall">
+      <Button {disabled} class="mr-xxsmall" on:click={update}>
+        Update styles
+      </Button>
+      <Button variant="secondary" on:click={cancel}>Cancel</Button>
+    </div>
+  </fieldset>
 </div>
