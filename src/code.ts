@@ -21,6 +21,8 @@ async function sendStyles(styles) {
     let lineHeight;
     if (s.lineHeight.unit === "AUTO") {
       lineHeight = "AUTO";
+    } else if (s.lineHeight.unit === "PERCENT") {
+      lineHeight = `${s.lineHeight.value}%`;
     } else {
       lineHeight = s.lineHeight.value;
     }
