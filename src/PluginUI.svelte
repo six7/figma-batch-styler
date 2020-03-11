@@ -24,6 +24,8 @@
   let selectedStyles = [];
   let fontWeight;
   let familyName;
+  let fontSize;
+  let lineHeight;
 
   $: disabled = !selectedStyles.length;
   $: size = styles.length > 8 ? 8 : styles.length
@@ -37,6 +39,8 @@
   function update() {
     let originalFamilyNames = getFamilyNames(selectedStyles);
     let originalFontWeights = getFontWeights(selectedStyles);
+    let originalFontSizes = getFontSizes(selectedStyles);
+    let originalLineHeights = getLineHeights(selectedStyles);
     let values = {};
     values.selectedStyles = selectedStyles;
     if (originalFamilyNames !== familyName) {
@@ -44,6 +48,12 @@
     }
     if (originalFontWeights !== fontWeight) {
       values.fontWeight = fontWeight;
+    }
+    if (originalFontSizes !== fontSize) {
+      values.fontSize = Number(fontSize);
+    }
+    if (originalLineHeights !== lineHeight) {
+      values.lineHeight = Number(lineHeight);
     }
 
     parent.postMessage(
@@ -69,12 +79,22 @@
     return [...new Set(selectedStyles.map(n => n.fontName.style))].join(", ");
   }
 
+  function getFontSizes(selectedStyles) {
+    return [...new Set(selectedStyles.map(n => n.fontSize))].join(", ");
+  }
+
+  function getLineHeights(selectedStyles) {
+    return [...new Set(selectedStyles.map(n => n.lineHeight))].join(", ");
+  }
+
   function setSelectedStyles(e) {
     selectedStyles = Array.from(e.target.selectedOptions, n =>
       JSON.parse(n.value)
     );
     familyName = getFamilyNames(selectedStyles);
     fontWeight = getFontWeights(selectedStyles);
+    fontSize = getFontSizes(selectedStyles);
+    lineHeight = getLineHeights(selectedStyles);
   }
 
   onmessage = event => {
@@ -254,6 +274,18 @@
       placeholder="Font weight"
       items={availableWeights}
       bind:selectedItem={fontWeight} />
+
+    <Label>Size</Label>
+    <Input
+      name="size"
+      bind:value={fontSize}
+    />
+
+    <Label>Line height</Label>
+    <Input
+      name="size"
+      bind:value={fontSize}
+    />
 
     <div class="mt-small flex ml-xxsmall mr-xxsmall">
       <Button {disabled} class="mr-xxsmall" on:click={update}>

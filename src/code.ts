@@ -17,8 +17,8 @@ figma.showUI(__html__, {
 
 async function sendStyles(styles) {
   let values = styles.map(s => {
-    const { name, fontName, fontSize, id } = s;
-    return { name, fontName, fontSize, id }
+    const { name, fontName, fontSize, lineHeight, id } = s;
+    return { name, fontName, fontSize, lineHeight, id }
   });
   let availableFonts = await figma.listAvailableFontsAsync()
   figma.ui.postMessage({
@@ -36,16 +36,23 @@ function getStyles() {
   return;
 }
 
-async function updateStyles({selectedStyles, familyName, fontWeight}) {
+async function updateStyles({selectedStyles, familyName, fontWeight, fontSize, lineHeight}) {
   let localStyles = figma.getLocalTextStyles();
   let styleChanges = selectedStyles.map(async selectedStyle => {
     let style = fontWeight ? fontWeight : selectedStyle.fontName.style;
     let family = familyName ? familyName : selectedStyle.fontName.family;
+    let size = fontSize ? fontSize : selectedStyle.fontSize;
+    let lh = lineHeight ? lineHeight : selectedStyle.lineHeight;
     let hit = localStyles.find(s => s.id === selectedStyle.id)
     await figma.loadFontAsync({family, style})
-    hit.fontName = {
-      family,
-      style
+    hit = {
+      ...hit,
+      fontSize: size,
+      lineHeight,
+      fontName: {
+        family,
+        style,
+      }
     }
     return hit;
   })
@@ -59,8 +66,8 @@ getStyles();
 figma.ui.onmessage = msg => {
   if (msg.type === "update") {
     console.log("Updating", msg);
-    const { selectedStyles, familyName, fontWeight} = msg;
-    updateStyles({selectedStyles, familyName, fontWeight})
+    const { selectedStyles, familyName, fontWeight, fontSize } = msg;
+    updateStyles({selectedStyles, familyName, fontWeight, fontSize})
     return;
   }
 
