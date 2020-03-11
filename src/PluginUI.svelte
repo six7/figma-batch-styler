@@ -63,7 +63,7 @@
       values.fontSize = Number(fontSize);
     }
     if (originalLineHeights !== lineHeight) {
-      var numbers = /^[0-9]+$/;
+      var numbers = /^\d+(\.\d+)?$/;
       if (lineHeight.match(numbers)) {
         values.lineHeight = {
           unit: "PIXELS",

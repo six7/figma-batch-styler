@@ -8,7 +8,7 @@
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 620
+  height: 600
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -22,9 +22,10 @@ async function sendStyles(styles) {
     if (s.lineHeight.unit === "AUTO") {
       lineHeight = "AUTO";
     } else if (s.lineHeight.unit === "PERCENT") {
-      lineHeight = `${s.lineHeight.value}%`;
+      let value = Math.round(s.lineHeight.value * 100) / 100
+      lineHeight = `${value}%`;
     } else {
-      lineHeight = s.lineHeight.value;
+      lineHeight = Math.round(s.lineHeight.value * 100) / 100;
     }
     return { name, fontName, fontSize, lineHeight, id };
   });
