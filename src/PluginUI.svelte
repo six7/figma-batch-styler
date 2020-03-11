@@ -1,19 +1,19 @@
 <script>
   import { GlobalCSS } from "figma-plugin-ds-svelte";
-  import Padding from "./padding.svg";
-  import Horizontal from "./horizontal.svg";
-  import Vertical from "./vertical.svg";
   import AutoComplete from "simple-svelte-autocomplete";
+  import Input from "./Input.svelte";
+  import RefreshCw from "./refresh-cw.svg"
+  import Github from "./github.svg"
 
   import {
     Button,
     Icon,
-    Input,
+    IconButton,
     Label,
     Type,
     Section,
     SelectMenu,
-    Switch
+    Switch,
   } from "figma-plugin-ds-svelte";
 
   let styles = [];
@@ -28,13 +28,23 @@
   let lineHeight;
 
   $: disabled = !selectedStyles.length;
-  $: size = styles.length > 8 ? 8 : styles.length
+  $: size = styles.length > 7 ? 7 : styles.length;
   $: {
     availableWeights = availableFamilies
       .filter(n => n.fontName.family === familyName)
       .map(n => n.fontName.style);
   }
 
+  function refresh() {
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: "refresh"
+        }
+      },
+      "*"
+    );
+  }
 
   function update() {
     let originalFamilyNames = getFamilyNames(selectedStyles);
@@ -53,7 +63,28 @@
       values.fontSize = Number(fontSize);
     }
     if (originalLineHeights !== lineHeight) {
-      values.lineHeight = Number(lineHeight);
+      var numbers = /^[0-9]+$/;
+      if (lineHeight.match(numbers)) {
+        values.lineHeight = {
+          unit: "PIXELS",
+          value: Number(lineHeight)
+        };
+      } else if (
+        lineHeight.trim().slice(-1) === "%" &&
+        lineHeight
+          .trim()
+          .slice(0, -1)
+          .match(numbers)
+      ) {
+        values.lineHeight = {
+          unit: "PERCENT",
+          value: Number(lineHeight.slice(0, -1))
+        };
+      } else {
+        values.lineHeight = {
+          unit: "AUTO"
+        };
+      }
     }
 
     parent.postMessage(
@@ -84,7 +115,9 @@
   }
 
   function getLineHeights(selectedStyles) {
-    return [...new Set(selectedStyles.map(n => n.lineHeight))].join(", ");
+    return [
+      ...new Set(selectedStyles.map(n => n.lineHeight))
+    ].join(", ");
   }
 
   function setSelectedStyles(e) {
@@ -174,6 +207,7 @@
     border: 1px solid var(--silver) !important;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+    max-height: calc(5 * (1rem + 10px) + 15px) !important;
   }
 
   :global(.autocomplete-list-item) {
@@ -223,6 +257,15 @@
     border: 2px solid white;
   }
 
+  .flex-grow {
+    flex-grow: 1;
+  }
+
+  .ml-auto {
+    margin-left: auto;
+  }
+
+
   select {
     border: 0;
   }
@@ -231,7 +274,10 @@
 <div class="p-xxsmall">
   <div class="styles-wrapper pr-xxsmall">
     {#if styles.length}
-      <Label>{styles.length} Text Styles</Label>
+      <div class="flex">
+        <Label>{styles.length} Text Styles</Label>
+        <IconButton iconName={RefreshCw} on:click={refresh} />
+      </div>
       <select
         multiple
         class="type-wrapper"
@@ -275,23 +321,27 @@
       items={availableWeights}
       bind:selectedItem={fontWeight} />
 
-    <Label>Size</Label>
-    <Input
-      name="size"
-      bind:value={fontSize}
-    />
-
-    <Label>Line height</Label>
-    <Input
-      name="size"
-      bind:value={fontSize}
-    />
+    <div class="flex justify-content-between">
+      <div class="flex-grow">
+        <Label>Size</Label>
+        <Input placeholder="Font Size" class="ml-xxsmall mr-xxsmall" name="size" bind:value={fontSize} />
+      </div>
+      <div class="flex-grow">
+        <Label>Line height</Label>
+        <Input placeholder="Line height" class="ml-xxsmall mr-xxsmall" name="lineheight" bind:value={lineHeight} />
+      </div>
+    </div>
 
     <div class="mt-small flex ml-xxsmall mr-xxsmall">
       <Button {disabled} class="mr-xxsmall" on:click={update}>
         Update styles
       </Button>
       <Button variant="secondary" on:click={cancel}>Cancel</Button>
+      <div class="ml-auto">
+        <a href="https://github.com/six7/figma-batch-styler" target="_blank">
+          <IconButton iconName={Github} />
+        </a>
+      </div>
     </div>
   </fieldset>
 </div>
