@@ -8,7 +8,7 @@
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 600
+  height: 620
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -18,9 +18,16 @@ figma.showUI(__html__, {
 async function sendStyles(styles) {
   let values = styles.map(s => {
     const { name, fontName, fontSize, id } = s;
-    return { name, fontName, fontSize, id }
+    let lineHeight;
+    if (s.lineHeight.unit === "AUTO") {
+      lineHeight = "AUTO";
+    } else {
+      lineHeight = s.lineHeight.value;
+    }
+    return { name, fontName, fontSize, lineHeight, id };
   });
-  let availableFonts = await figma.listAvailableFontsAsync()
+
+  let availableFonts = await figma.listAvailableFontsAsync();
   figma.ui.postMessage({
     type: "postStyles",
     styles: values,
@@ -36,31 +43,59 @@ function getStyles() {
   return;
 }
 
-async function updateStyles({selectedStyles, familyName, fontWeight}) {
+async function updateStyles({
+  selectedStyles,
+  familyName,
+  fontWeight,
+  fontSize,
+  lineHeight
+}) {
   let localStyles = figma.getLocalTextStyles();
   let styleChanges = selectedStyles.map(async selectedStyle => {
     let style = fontWeight ? fontWeight : selectedStyle.fontName.style;
     let family = familyName ? familyName : selectedStyle.fontName.family;
-    let hit = localStyles.find(s => s.id === selectedStyle.id)
-    await figma.loadFontAsync({family, style})
+    let size = fontSize ? fontSize : selectedStyle.fontSize;
+    let lh = lineHeight ? lineHeight : selectedStyle.lineHeight;
+    let hit = localStyles.find(s => s.id === selectedStyle.id);
+    await figma.loadFontAsync({ family, style });
     hit.fontName = {
       family,
       style
-    }
+    };
+    hit.fontSize = size;
+    hit.lineHeight = {
+      ...lh
+    };
     return hit;
-  })
+  });
 
   await Promise.all(styleChanges);
-  sendStyles(localStyles)
+  sendStyles(localStyles);
 }
 
 getStyles();
 
 figma.ui.onmessage = msg => {
   if (msg.type === "update") {
-    console.log("Updating", msg);
-    const { selectedStyles, familyName, fontWeight} = msg;
-    updateStyles({selectedStyles, familyName, fontWeight})
+    const {
+      selectedStyles,
+      familyName,
+      fontWeight,
+      fontSize,
+      lineHeight
+    } = msg;
+    updateStyles({
+      selectedStyles,
+      familyName,
+      fontWeight,
+      fontSize,
+      lineHeight
+    });
+    return;
+  }
+  if (msg.type === "refresh") {
+    getStyles();
+
     return;
   }
 
