@@ -1,3 +1,5 @@
+# Batch Styler
+
 ## To get started
 ```bash
 npm install
