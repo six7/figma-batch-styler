@@ -22,7 +22,7 @@ async function sendStyles(styles) {
     if (s.lineHeight.unit === "AUTO") {
       lineHeight = "AUTO";
     } else if (s.lineHeight.unit === "PERCENT") {
-      let value = Math.round(s.lineHeight.value * 100) / 100
+      let value = Math.round(s.lineHeight.value * 100) / 100;
       lineHeight = `${value}%`;
     } else {
       lineHeight = Math.round(s.lineHeight.value * 100) / 100;
@@ -51,11 +51,22 @@ async function updateStyles({
   familyName,
   fontWeight,
   fontSize,
-  lineHeight
+  lineHeight,
+  fontMappings
 }) {
   let localStyles = figma.getLocalTextStyles();
+  console.log("setting new styles", localStyles);
   let styleChanges = selectedStyles.map(async selectedStyle => {
-    let style = fontWeight ? fontWeight : selectedStyle.fontName.style;
+    console.log({fontMappings})
+    console.log("setting new styles", selectedStyle, fontWeight, familyName);
+    let style;
+    if (fontMappings) {
+      let hit = fontMappings.find(mapping => mapping.currentWeight === selectedStyle.fontName.style);
+      console.log("found a hit, setting style to", hit.newWeight)
+      style = hit.newWeight;
+    } else {
+      style = fontWeight ? fontWeight : selectedStyle.fontName.style;
+    }
     let family = familyName ? familyName : selectedStyle.fontName.family;
     let size = fontSize ? fontSize : selectedStyle.fontSize;
     let lh = lineHeight ? lineHeight : selectedStyle.lineHeight;
@@ -85,14 +96,16 @@ figma.ui.onmessage = msg => {
       familyName,
       fontWeight,
       fontSize,
-      lineHeight
+      lineHeight,
+      fontMappings
     } = msg;
     updateStyles({
       selectedStyles,
       familyName,
       fontWeight,
       fontSize,
-      lineHeight
+      lineHeight,
+      fontMappings,
     });
     return;
   }

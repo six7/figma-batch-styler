@@ -2,8 +2,8 @@
   import { GlobalCSS } from "figma-plugin-ds-svelte";
   import AutoComplete from "simple-svelte-autocomplete";
   import Input from "./Input.svelte";
-  import RefreshCw from "./refresh-cw.svg"
-  import Github from "./github.svg"
+  import RefreshCw from "./refresh-cw.svg";
+  import Github from "./github.svg";
 
   import {
     Button,
@@ -14,25 +14,62 @@
     Section,
     SelectMenu,
     Switch,
+    IconWarning
   } from "figma-plugin-ds-svelte";
 
   let styles = [];
+  let styleFilter = "";
+  let currentFamily = {};
   let availableFontNames = [];
-  let availableFontWeights = [];
   let availableFamilies = [];
   let availableWeights = [];
+  let hasAllWeightsAvailable = true;
   let selectedStyles = [];
-  let fontWeight;
+  let fontWeight = "";
+  let newFontWeights = [];
   let familyName;
   let fontSize;
   let lineHeight;
+  let weightsDialogVisible = false;
+  let loading = true;
 
   $: disabled = !selectedStyles.length;
-  $: size = styles.length > 7 ? 7 : styles.length;
+  $: filteredStyles = styles.filter(style => {
+    var regex = new RegExp(styleFilter, "gi");
+    return style.name.match(regex);
+  });
+  $: size = filteredStyles.length > 7 ? 7 : filteredStyles.length;
   $: {
-    availableWeights = availableFamilies
-      .filter(n => n.fontName.family === familyName)
-      .map(n => n.fontName.style);
+    availableWeights = currentFamily.map(n => n.fontName.style);
+  }
+  $: {
+    currentFamily = availableFamilies.filter(
+      n => n.fontName.family === familyName
+    );
+  }
+  $: {
+    hasAllWeightsAvailable = fontWeight
+      ? fontWeight.split(", ").every(e => availableWeights.includes(e))
+      : true;
+  }
+
+  function showMissingWeightsDialog() {
+    weightsDialogVisible = true;
+    newFontWeights = fontWeight.split(", ").map(weight => {
+      return {
+        currentWeight: weight,
+        newWeight: weight
+      };
+    });
+  }
+
+  function setFontWeightMappings() {
+    weightsDialogVisible = false;
+    fontWeight = [...new Set(newFontWeights.map(n => n.newWeight))].join(", ");
+  }
+
+  function hasMissingFont(item) {
+    return !availableWeights.some(i => i === item);
   }
 
   function refresh() {
@@ -57,6 +94,9 @@
       values.familyName = familyName;
     }
     if (originalFontWeights !== fontWeight) {
+      if (fontWeight.split(", ").length > 1) {
+        values.fontMappings = newFontWeights;
+      }
       values.fontWeight = fontWeight;
     }
     if (originalFontSizes !== fontSize) {
@@ -115,9 +155,7 @@
   }
 
   function getLineHeights(selectedStyles) {
-    return [
-      ...new Set(selectedStyles.map(n => n.lineHeight))
-    ].join(", ");
+    return [...new Set(selectedStyles.map(n => n.lineHeight))].join(", ");
   }
 
   function setSelectedStyles(e) {
@@ -139,6 +177,7 @@
           event.data.pluginMessage.availableFonts.map(n => n.fontName.family)
         )
       ];
+      loading = false;
     }
   };
 </script>
@@ -257,6 +296,16 @@
     border: 2px solid white;
   }
 
+  .autocomplete-wrapper {
+    position: relative;
+  }
+
+  .missing-button {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
   .flex-grow {
     flex-grow: 1;
   }
@@ -265,26 +314,104 @@
     margin-left: auto;
   }
 
-
   select {
     border: 0;
   }
+
+  .weights-dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    z-index: 50;
+    margin: 50px;
+  }
+
+  .dialog-title {
+    border-bottom: 1px solid var(--grey);
+    padding-bottom: var(--pxxsmall);
+  }
+
+  .dialog-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--grey);
+    opacity: 0.5;
+    z-index: 50;
+  }
+
+  .select-sm {
+    font-size: var(--font-size-xsmall);
+    font-family: var(--font-stack);
+    border: 1px solid var(--grey);
+    padding: var(--size-xxsmall);
+    border-radius: var(--border-radius-small);
+  }
 </style>
+
+{#if weightsDialogVisible}
+  <div class="dialog-background" />
+  <div class="weights-dialog">
+    <div class="dialog-title">
+      <div class="p-xxsmall">
+        <Type weight="bold">Missing Weights</Type>
+      </div>
+    </div>
+    <div class="p-xxsmall">
+      {#each newFontWeights as weight, i}
+        <div class="flex justify-content-between align-items-center mb-xxsmall">
+          <Type>{weight.currentWeight}</Type>
+          <div class="flex align-items-center">
+            <select class="select-sm" bind:value={newFontWeights[i].newWeight}>
+              <option disabled>{newFontWeights[i].newWeight}</option>
+              {#each availableWeights as item}
+                <option>{item}</option>
+              {/each}
+            </select>
+            {#if hasMissingFont(weight.currentWeight)}
+              <Icon iconName={IconWarning} />
+            {/if}
+          </div>
+        </div>
+      {/each}
+      <Button on:click={setFontWeightMappings}>Save</Button>
+    </div>
+  </div>
+{/if}
 
 <div class="p-xxsmall">
   <div class="styles-wrapper pr-xxsmall">
+    {#if loading}LOADING!{/if}
     {#if styles.length}
-      <div class="flex">
-        <Label>{styles.length} Text Styles</Label>
+      <div class="flex justify-content-between align-items-center">
+        {#if styleFilter}
+          <Type>
+            {filteredStyles.length} Text Styles matching
+            <Type weight="bold" inline>{styleFilter}</Type>
+          </Type>
+        {:else}
+          <Type>{styles.length} Text Styles</Type>
+        {/if}
         <IconButton iconName={RefreshCw} on:click={refresh} />
+      </div>
+      <div class="mb-xxsmall">
+        <Input
+          placeholder="Type to search for styles"
+          className="text-input"
+          name="styleFilter"
+          bind:value={styleFilter} />
       </div>
       <select
         multiple
         class="type-wrapper"
         {size}
-        value={styles}
+        value={filteredStyles}
         on:change={setSelectedStyles}>
-        {#each styles as style}
+        {#each filteredStyles as style}
           <option
             value={JSON.stringify(style)}
             class="flex type-item pt-xxsmall pb-xxsmall pl-xxsmall pr-xxsmall">
@@ -316,23 +443,39 @@
       bind:selectedItem={familyName} />
 
     <Label>Weight</Label>
-    <AutoComplete
-      placeholder="Font weight"
-      items={availableWeights}
-      bind:selectedItem={fontWeight} />
-
+    <div class="autocomplete-wrapper">
+      <AutoComplete
+        placeholder="Font weight"
+        items={availableWeights}
+        bind:selectedItem={fontWeight} />
+      {#if !hasAllWeightsAvailable && familyName.split(', ').length === 1}
+        <div class="missing-button pr-xxsmall">
+          <IconButton
+            iconName={IconWarning}
+            on:click={showMissingWeightsDialog} />
+        </div>
+      {/if}
+    </div>
     <div class="flex justify-content-between">
       <div class="flex-grow">
         <Label>Size</Label>
-        <Input placeholder="Font Size" class="ml-xxsmall mr-xxsmall" name="size" bind:value={fontSize} />
+        <Input
+          placeholder="Font Size"
+          class="ml-xxsmall mr-xxsmall"
+          name="size"
+          bind:value={fontSize} />
       </div>
       <div class="flex-grow">
         <Label>Line height</Label>
-        <Input placeholder="Line height" class="ml-xxsmall mr-xxsmall" name="lineheight" bind:value={lineHeight} />
+        <Input
+          placeholder="Line height"
+          class="ml-xxsmall mr-xxsmall"
+          name="lineheight"
+          bind:value={lineHeight} />
       </div>
     </div>
 
-    <div class="mt-small flex ml-xxsmall mr-xxsmall">
+    <div class="mt-small flex ml-xxsmall mr-xxsmall mb-xsmall">
       <Button {disabled} class="mr-xxsmall" on:click={update}>
         Update styles
       </Button>
