@@ -15,8 +15,11 @@ figma.showUI(__html__, {
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 
-async function sendStyles(styles) {
-  let values = styles.map(s => {
+async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
+  let colorStyles = figmaColorStyles.map(s => {
+    console.log({ s });
+  });
+  let textStyles = figmaTextStyles.map(s => {
     const { name, fontName, fontSize, id } = s;
     let lineHeight;
     if (s.lineHeight.unit === "AUTO") {
@@ -33,15 +36,17 @@ async function sendStyles(styles) {
   let availableFonts = await figma.listAvailableFontsAsync();
   figma.ui.postMessage({
     type: "postStyles",
-    styles: values,
+    textStyles,
+    colorStyles,
     availableFonts
   });
 }
 
 function getStyles() {
-  const styles = figma.getLocalTextStyles();
-  if (styles.length) {
-    sendStyles(styles);
+  const figmaTextStyles = figma.getLocalTextStyles();
+  const figmaColorStyles = figma.getLocalPaintStyles();
+  if (figmaTextStyles.length || figmaColorStyles.length) {
+    sendStyles({ figmaTextStyles, figmaColorStyles });
   }
   return;
 }
@@ -55,14 +60,12 @@ async function updateStyles({
   fontMappings
 }) {
   let localStyles = figma.getLocalTextStyles();
-  console.log("setting new styles", localStyles);
   let styleChanges = selectedStyles.map(async selectedStyle => {
-    console.log({fontMappings})
-    console.log("setting new styles", selectedStyle, fontWeight, familyName);
     let style;
     if (fontMappings) {
-      let hit = fontMappings.find(mapping => mapping.currentWeight === selectedStyle.fontName.style);
-      console.log("found a hit, setting style to", hit.newWeight)
+      let hit = fontMappings.find(
+        mapping => mapping.currentWeight === selectedStyle.fontName.style
+      );
       style = hit.newWeight;
     } else {
       style = fontWeight ? fontWeight : selectedStyle.fontName.style;
@@ -105,7 +108,7 @@ figma.ui.onmessage = msg => {
       fontWeight,
       fontSize,
       lineHeight,
-      fontMappings,
+      fontMappings
     });
     return;
   }
