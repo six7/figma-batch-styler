@@ -10,7 +10,7 @@ import { hslToRgb, rgbToHsl } from "./color-helpers.js";
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 600,
+  height: 620,
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -50,6 +50,8 @@ function getStyles() {
   const figmaColorStyles = figma.getLocalPaintStyles();
   if (figmaTextStyles.length || figmaColorStyles.length) {
     sendStyles({ figmaTextStyles, figmaColorStyles });
+  } else {
+    sendStyles({});
   }
   return;
 }
@@ -158,25 +160,34 @@ async function updateStyles({
 }) {
   let styleChanges;
 
-  if (variant === "COLOR") {
-    styleChanges = updateColorStyles({
-      selectedStyles,
-      hue,
-      saturation,
-      lightness,
-    });
-  } else {
-    styleChanges = updateTextStyles({
-      selectedStyles,
-      familyName,
-      fontWeight,
-      fontSize,
-      lineHeight,
-      fontMappings,
-    });
-  }
+  try {
+    if (variant === "COLOR") {
+      styleChanges = updateColorStyles({
+        selectedStyles,
+        hue,
+        saturation,
+        lightness,
+      });
+      figma.notify(
+        `Successfully updated ${selectedStyles.length} color styles`
+      );
+    } else {
+      styleChanges = updateTextStyles({
+        selectedStyles,
+        familyName,
+        fontWeight,
+        fontSize,
+        lineHeight,
+        fontMappings,
+      });
+      figma.notify(`Successfully updated ${selectedStyles.length} text styles`);
+    }
 
-  await Promise.all(styleChanges);
+    await Promise.all(styleChanges);
+  } catch (e) {
+    figma.notify("Encountered an error, full output in console");
+    console.error(e);
+  }
   getStyles();
 }
 

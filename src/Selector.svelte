@@ -64,16 +64,22 @@
     display: block;
   }
 
+  :global(select::-webkit-scrollbar) {
+    width: 9px;
+  }
+
+  :global(select::-webkit-scrollbar-thumb) {
+    background-color: var(--black3);
+    border-radius: 9px;
+    border: 2px solid white;
+  }
+
   .type-item:hover {
     background: var(--hover-fill);
   }
 
   .type-item::selection {
     background: red;
-  }
-
-  .selector-wrapper {
-
   }
 </style>
 

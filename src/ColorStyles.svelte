@@ -120,58 +120,57 @@
   :global(.hue-wrapper) {
     border-radius: 50px;
   }
+
+  :global(.disabled) {
+    opacity: 0.3;
+    filter: grayscale();
+    pointer-events: none;
+  }
 </style>
 
 <div>
-  <div class="styles-wrapper pr-xxsmall">
+  <div class="styles-wrapper">
     <Selector type="Color" {styles} {setSelectedStyles} {sendToUI} />
   </div>
 
   <hr class="mt-small mb-xsmall ml-xxsmall mr-xxsmall" />
-  <div class="ml-xxsmall mr-xxsmall mb-xsmall">
-    <div class="mb-xxsmall">
-      <Type weight="bold">Properties</Type>
-    </div>
-    {#if selectedStyles.length}
-      <Type>Only changed values get updated.</Type>
-    {:else}
-      <Type>Select one or more styles to begin.</Type>
-    {/if}
-  </div>
-  <fieldset {disabled}>
-    <div>
-      <Hue class="hue-wrapper" bind:h={hue} on:input={handleInput} />
-    </div>
-    <div class="flex justify-content-between">
-      <div class="flex-grow">
-        <Label>Hue</Label>
-        <Input
-          placeholder="Hue"
-          class="ml-xxsmall mr-xxsmall"
-          name="hue"
-          bind:value={hue} />
+  <form on:submit={e => e.preventDefault()}>
+    <fieldset {disabled}>
+      <div class="ml-xxsmall mr-xxsmall mb-xxsmall mt-xsmall">
+        <Hue
+          class="hue-wrapper {disabled ? 'disabled' : ''}"
+          bind:h={hue}
+          on:input={handleInput} />
       </div>
-      <div class="flex-grow">
-        <Label>Saturation</Label>
-        <Input
-          placeholder="Saturation"
-          class="ml-xxsmall mr-xxsmall"
-          name="saturation"
-          bind:value={saturation} />
+      <div class="flex justify-content-between">
+        <div class="flex-grow">
+          <Label>Hue</Label>
+          <Input
+            placeholder="Hue"
+            class="ml-xxsmall mr-xxsmall"
+            name="hue"
+            bind:value={hue} />
+        </div>
+        <div class="flex-grow">
+          <Label>Saturation</Label>
+          <Input
+            placeholder="Saturation"
+            class="ml-xxsmall mr-xxsmall"
+            name="saturation"
+            bind:value={saturation} />
+        </div>
+        <div class="flex-grow">
+          <Label>Lightness</Label>
+          <Input
+            placeholder="Lightness"
+            class="ml-xxsmall mr-xxsmall"
+            name="lightness"
+            bind:value={lightness} />
+        </div>
       </div>
-      <div class="flex-grow">
-        <Label>Lightness</Label>
-        <Input
-          placeholder="Lightness"
-          class="ml-xxsmall mr-xxsmall"
-          name="lightness"
-          bind:value={lightness} />
+      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
+        <Button {disabled} on:click={update}>Update styles</Button>
       </div>
-    </div>
-    <div class="mt-small flex ml-xxsmall mr-xxsmall mb-xsmall">
-      <Button {disabled} class="mr-xxsmall" on:click={update}>
-        Update styles
-      </Button>
-    </div>
-  </fieldset>
+    </fieldset>
+  </form>
 </div>

@@ -4,7 +4,6 @@
   import Input from "./Input.svelte";
   import Selector from "./Selector.svelte";
   import MissingWeightsDialog from "./MissingWeightsDialog.svelte";
-  import Github from "./github.svg";
 
   import {
     Button,
@@ -148,6 +147,11 @@
 
 <style lang="scss">
   /* Add additional global or scoped styles here */
+
+  .form-wrapper {
+    border: 1px solid var(--silver);
+    padding: var(--size-medium);
+  }
   fieldset {
     border: 0;
     padding: 0;
@@ -209,24 +213,6 @@
     color: white !important;
   }
 
-  :global(select::-webkit-scrollbar) {
-    width: 9px;
-  }
-
-  :global(select::-webkit-scrollbar-thumb) {
-    background-color: var(--black3);
-    border-radius: 9px;
-    border: 2px solid white;
-  }
-  :global(body::-webkit-scrollbar) {
-    width: 9px;
-  }
-
-  :global(body::-webkit-scrollbar-thumb) {
-    background-color: var(--black3);
-    border-radius: 9px;
-    border: 2px solid white;
-  }
   :global(.autocomplete-list::-webkit-scrollbar) {
     width: 9px;
   }
@@ -241,6 +227,10 @@
     position: relative;
   }
 
+  :global(input:disabled) {
+    background-color: white;
+  }
+
   .missing-button {
     position: absolute;
     right: 0;
@@ -249,10 +239,6 @@
 
   .flex-grow {
     flex-grow: 1;
-  }
-
-  .ml-auto {
-    margin-left: auto;
   }
 </style>
 
@@ -264,70 +250,55 @@
       {setFontWeightMappings} />
   {/if}
 
-  <div class="styles-wrapper pr-xxsmall">
+  <div class="styles-wrapper">
     <Selector type="Text" {styles} {setSelectedStyles} {sendToUI} />
   </div>
 
-  <hr class="mt-small mb-xsmall ml-xxsmall mr-xxsmall" />
-  <div class="ml-xxsmall mr-xxsmall mb-xsmall">
-    <div class="mb-xxsmall">
-      <Type weight="bold">Properties</Type>
-    </div>
-    {#if selectedStyles.length}
-      <Type>Only changed values get updated.</Type>
-    {:else}
-      <Type>Select one or more styles to begin.</Type>
-    {/if}
-  </div>
-  <fieldset {disabled}>
-    <Label>Family</Label>
-    <AutoComplete
-      placeholder="Font family"
-      items={availableFontNames}
-      bind:selectedItem={familyName} />
-
-    <Label>Weight</Label>
-    <div class="autocomplete-wrapper">
+  <hr class="mt-xxsmall" />
+  <form on:submit={e => e.preventDefault()}>
+    <fieldset {disabled}>
+      <Label>Family</Label>
       <AutoComplete
-        placeholder="Font weight"
-        items={availableWeights}
-        bind:selectedItem={fontWeight} />
-      {#if !hasAllWeightsAvailable && familyName.split(', ').length === 1}
-        <div class="missing-button pr-xxsmall">
-          <IconButton
-            iconName={IconWarning}
-            on:click={showMissingWeightsDialog} />
-        </div>
-      {/if}
-    </div>
-    <div class="flex justify-content-between">
-      <div class="flex-grow">
-        <Label>Size</Label>
-        <Input
-          placeholder="Font Size"
-          class="ml-xxsmall mr-xxsmall"
-          name="size"
-          bind:value={fontSize} />
-      </div>
-      <div class="flex-grow">
-        <Label>Line height</Label>
-        <Input
-          placeholder="Line height"
-          class="ml-xxsmall mr-xxsmall"
-          name="lineheight"
-          bind:value={lineHeight} />
-      </div>
-    </div>
+        placeholder="Font family"
+        items={availableFontNames}
+        bind:selectedItem={familyName} />
 
-    <div class="mt-small flex ml-xxsmall mr-xxsmall mb-xsmall">
-      <Button {disabled} class="mr-xxsmall" on:click={update}>
-        Update styles
-      </Button>
-      <div class="ml-auto">
-        <a href="https://github.com/six7/figma-batch-styler" target="_blank">
-          <IconButton iconName={Github} />
-        </a>
+      <Label>Weight</Label>
+      <div class="autocomplete-wrapper">
+        <AutoComplete
+          placeholder="Font weight"
+          items={availableWeights}
+          bind:selectedItem={fontWeight} />
+        {#if !hasAllWeightsAvailable && familyName.split(', ').length === 1}
+          <div class="missing-button pr-xxsmall">
+            <IconButton
+              iconName={IconWarning}
+              on:click={showMissingWeightsDialog} />
+          </div>
+        {/if}
       </div>
-    </div>
-  </fieldset>
+      <div class="flex justify-content-between">
+        <div class="flex-grow">
+          <Label>Size</Label>
+          <Input
+            placeholder="Font Size"
+            class="ml-xxsmall mr-xxsmall"
+            name="size"
+            bind:value={fontSize} />
+        </div>
+        <div class="flex-grow">
+          <Label>Line height</Label>
+          <Input
+            placeholder="Line height"
+            class="ml-xxsmall mr-xxsmall"
+            name="lineheight"
+            bind:value={lineHeight} />
+        </div>
+      </div>
+
+      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
+        <Button {disabled} on:click={update}>Update styles</Button>
+      </div>
+    </fieldset>
+  </form>
 </div>
