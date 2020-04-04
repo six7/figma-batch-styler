@@ -19,6 +19,7 @@
   export let styles = [];
   export let setSelectedStyles;
   export let sendToUI;
+  export let type;
   let filteredStyles = [];
 
   $: filteredStyles = styles.filter(style => {
@@ -66,17 +67,25 @@
   .type-item:hover {
     background: var(--hover-fill);
   }
+
+  .type-item::selection {
+    background: red;
+  }
+
+  .selector-wrapper {
+
+  }
 </style>
 
-{#if styles.length}
+<div class="selector-wrapper">
   <div class="flex justify-content-between align-items-center">
     {#if styleFilter}
       <Type>
-        {filteredStyles.length} Text Styles matching
+        {filteredStyles.length} {type} Styles matching
         <Type weight="bold" inline>{styleFilter}</Type>
       </Type>
     {:else}
-      <Type>{styles.length} Text Styles</Type>
+      <Type>{styles.length} {type} Styles</Type>
     {/if}
     <IconButton iconName={RefreshCw} on:click={refresh} />
   </div>
@@ -87,20 +96,22 @@
       name="styleFilter"
       bind:value={styleFilter} />
   </div>
-  <select
-    multiple
-    class="type-wrapper"
-    {size}
-    value={filteredStyles}
-    on:change={setSelected}>
-    {#each filteredStyles as style}
-      <option
-        value={JSON.stringify(style)}
-        class="flex type-item pt-xxsmall pb-xxsmall pl-xxsmall pr-xxsmall">
-        {style.name}
-      </option>
-    {/each}
-  </select>
-{:else}
-  <Label>No Text Styles found.</Label>
-{/if}
+  {#if styles.length}
+    <select
+      multiple
+      class="type-wrapper"
+      {size}
+      value={filteredStyles}
+      on:change={setSelected}>
+      {#each filteredStyles as style}
+        <option
+          value={JSON.stringify(style)}
+          class="flex type-item pt-xxsmall pb-xxsmall pl-xxsmall pr-xxsmall">
+          {style.name}
+        </option>
+      {/each}
+    </select>
+  {:else}
+    <Label>No {type} Styles found.</Label>
+  {/if}
+</div>

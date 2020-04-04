@@ -23,11 +23,12 @@
   let loading = true;
   let visible = "text";
 
-  function sendToUI({ type, values = {} }) {
+  function sendToUI({ type, variant, values = {} }) {
     parent.postMessage(
       {
         pluginMessage: {
           type,
+          variant,
           ...values
         }
       },

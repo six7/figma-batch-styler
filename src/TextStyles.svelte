@@ -116,7 +116,8 @@
 
     sendToUI({
       type: "update",
-      values
+      values,
+      variant: "TEXT"
     });
   }
 
@@ -255,7 +256,7 @@
   }
 </style>
 
-<div class="p-xxsmall">
+<div>
   {#if weightsDialogVisible}
     <MissingWeightsDialog
       {newFontWeights}
@@ -264,7 +265,7 @@
   {/if}
 
   <div class="styles-wrapper pr-xxsmall">
-    <Selector {styles} {setSelectedStyles} {sendToUI} />
+    <Selector type="Text" {styles} {setSelectedStyles} {sendToUI} />
   </div>
 
   <hr class="mt-small mb-xsmall ml-xxsmall mr-xxsmall" />

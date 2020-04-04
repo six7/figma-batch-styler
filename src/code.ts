@@ -1,3 +1,5 @@
+import { hslToRgb, rgbToHsl } from "./color-helpers.js";
+
 // This plugin will open a modal to prompt the user to enter a number, and
 // it will then create that many rectangles on the screen.
 
@@ -8,7 +10,7 @@
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 600
+  height: 600,
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -16,10 +18,11 @@ figma.showUI(__html__, {
 // posted message.
 
 async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
-  let colorStyles = figmaColorStyles.map(s => {
-    console.log({ s });
+  let colorStyles = figmaColorStyles.map((s) => {
+    const { name, paints, id } = s;
+    return { name, paints, id };
   });
-  let textStyles = figmaTextStyles.map(s => {
+  let textStyles = figmaTextStyles.map((s) => {
     const { name, fontName, fontSize, id } = s;
     let lineHeight;
     if (s.lineHeight.unit === "AUTO") {
@@ -38,7 +41,7 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
     type: "postStyles",
     textStyles,
     colorStyles,
-    availableFonts
+    availableFonts,
   });
 }
 
@@ -51,20 +54,21 @@ function getStyles() {
   return;
 }
 
-async function updateStyles({
+function updateTextStyles({
   selectedStyles,
   familyName,
   fontWeight,
   fontSize,
   lineHeight,
-  fontMappings
+  fontMappings,
 }) {
   let localStyles = figma.getLocalTextStyles();
-  let styleChanges = selectedStyles.map(async selectedStyle => {
+
+  return selectedStyles.map(async (selectedStyle) => {
     let style;
     if (fontMappings) {
       let hit = fontMappings.find(
-        mapping => mapping.currentWeight === selectedStyle.fontName.style
+        (mapping) => mapping.currentWeight === selectedStyle.fontName.style
       );
       style = hit.newWeight;
     } else {
@@ -73,26 +77,112 @@ async function updateStyles({
     let family = familyName ? familyName : selectedStyle.fontName.family;
     let size = fontSize ? fontSize : selectedStyle.fontSize;
     let lh = lineHeight ? lineHeight : selectedStyle.lineHeight;
-    let hit = localStyles.find(s => s.id === selectedStyle.id);
+    let hit = localStyles.find((s) => s.id === selectedStyle.id);
     await figma.loadFontAsync({ family, style });
     hit.fontName = {
       family,
-      style
+      style,
     };
     hit.fontSize = size;
     hit.lineHeight = {
-      ...lh
+      ...lh,
     };
     return hit;
   });
+}
+
+function convertToHsl(color) {
+  const { r, g, b } = color;
+  let rawHsl = rgbToHsl(r * 255, g * 255, b * 255);
+  let [h, s, l] = rawHsl;
+  h = Math.round(h * 360);
+  s = Math.round(s * 100);
+  l = Math.round(l * 100);
+  return { h, s, l };
+}
+
+function convertToRgb(color) {
+  const { h, s, l } = color;
+  let rawRgb = hslToRgb(h / 360, s / 100, l / 100);
+  let [r, g, b] = rawRgb;
+  r = r / 255;
+  g = g / 255;
+  b = b / 255;
+  return { r, g, b };
+}
+
+function getColors(style) {
+  let paints = style.paints.filter((n) => n.type === "SOLID");
+  if (!paints) return;
+  return paints[0].color;
+}
+
+function getHslFromStyle(style) {
+  let color = getColors(style);
+  let { h, s, l } = convertToHsl(color);
+  return { h, s, l };
+}
+
+function updateColorStyles({ selectedStyles, hue, saturation, lightness }) {
+  let localStyles = figma.getLocalPaintStyles();
+
+  return selectedStyles.map(async (selectedStyle) => {
+    let { h, s, l } = getHslFromStyle(selectedStyle);
+    let newHue = hue ? hue : h;
+    let newSaturation = saturation ? saturation : s;
+    let newLightness = lightness ? lightness : l;
+    let newColor = convertToRgb({
+      h: newHue,
+      s: newSaturation,
+      l: newLightness,
+    });
+    let rgbValues = getColors(selectedStyle);
+    let originalHsl = convertToHsl(rgbValues);
+    let hit = localStyles.find((s) => s.id === selectedStyle.id);
+    hit.paints = [{ color: newColor, type: "SOLID" }];
+    return hit;
+  });
+}
+
+async function updateStyles({
+  selectedStyles,
+  hue,
+  saturation,
+  lightness,
+  familyName,
+  fontWeight,
+  fontSize,
+  lineHeight,
+  fontMappings,
+  variant,
+}) {
+  let styleChanges;
+
+  if (variant === "COLOR") {
+    styleChanges = updateColorStyles({
+      selectedStyles,
+      hue,
+      saturation,
+      lightness,
+    });
+  } else {
+    styleChanges = updateTextStyles({
+      selectedStyles,
+      familyName,
+      fontWeight,
+      fontSize,
+      lineHeight,
+      fontMappings,
+    });
+  }
 
   await Promise.all(styleChanges);
-  sendStyles(localStyles);
+  getStyles();
 }
 
 getStyles();
 
-figma.ui.onmessage = msg => {
+figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
     const {
       selectedStyles,
@@ -100,7 +190,11 @@ figma.ui.onmessage = msg => {
       fontWeight,
       fontSize,
       lineHeight,
-      fontMappings
+      fontMappings,
+      hue,
+      saturation,
+      lightness,
+      variant,
     } = msg;
     updateStyles({
       selectedStyles,
@@ -108,7 +202,11 @@ figma.ui.onmessage = msg => {
       fontWeight,
       fontSize,
       lineHeight,
-      fontMappings
+      fontMappings,
+      hue,
+      saturation,
+      lightness,
+      variant,
     });
     return;
   }

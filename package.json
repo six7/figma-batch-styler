@@ -26,6 +26,7 @@
     "typescript": "^3.7.4"
   },
   "dependencies": {
-    "sirv-cli": "^0.4.4"
+    "sirv-cli": "^0.4.4",
+    "svelte-color": "^1.0.2"
   }
 }
