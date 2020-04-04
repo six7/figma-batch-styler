@@ -133,7 +133,7 @@
     <Selector type="Color" {styles} {setSelectedStyles} {sendToUI} />
   </div>
 
-  <hr class="mt-small mb-xsmall ml-xxsmall mr-xxsmall" />
+  <hr class="mt-xsmall mb-xsmall ml-xxsmall mr-xxsmall" />
   <form on:submit={e => e.preventDefault()}>
     <fieldset {disabled}>
       <div class="ml-xxsmall mr-xxsmall mb-xxsmall mt-xsmall">

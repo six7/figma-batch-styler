@@ -3,6 +3,7 @@
   import TextStyles from "./TextStyles.svelte";
   import ColorStyles from "./ColorStyles.svelte";
   import NoneFound from "./NoneFound.svelte";
+  import Loading from "./Loading.svelte";
   import MissingWeightsDialog from "./MissingWeightsDialog.svelte";
   import Github from "./github.svg";
 
@@ -47,7 +48,6 @@
     visible = e.target.name;
   }
 
-  console.log("check", { event });
   onmessage = event => {
     if (event.data.pluginMessage.type === "postStyles") {
       textStyles = event.data.pluginMessage.textStyles;
@@ -130,37 +130,40 @@
     </button>
   </div>
   <div class="p-xxsmall inner-wrapper">
-    {#if loading}LOADING!{/if}
-    {#if textStyles.length || colorStyles.length}
-      {#if visible === 'text'}
-        {#if textStyles.length}
-          <TextStyles {sendToUI} styles={textStyles} {availableFamilies} />
-        {:else}
-          <NoneFound>No Text Styles found</NoneFound>
-        {/if}
-      {/if}
-      {#if visible === 'color'}
-        {#if colorStyles.length}
-          <ColorStyles {sendToUI} styles={colorStyles} />
-        {:else}
-          <NoneFound>No Color Styles found</NoneFound>
-        {/if}
-      {/if}
+    {#if loading}
+      <Loading />
     {:else}
-      <NoneFound>No Styles found</NoneFound>
-    {/if}
-    <div
-      class="ml-xxsmall mr-xxsmall flex justify-content-between
-      align-items-center">
-      <Type>
-        For suggestions or issues visit
+      {#if textStyles.length || colorStyles.length}
+        {#if visible === 'text'}
+          {#if textStyles.length}
+            <TextStyles {sendToUI} styles={textStyles} {availableFamilies} />
+          {:else}
+            <NoneFound>No Text Styles found</NoneFound>
+          {/if}
+        {/if}
+        {#if visible === 'color'}
+          {#if colorStyles.length}
+            <ColorStyles {sendToUI} styles={colorStyles} />
+          {:else}
+            <NoneFound>No Color Styles found</NoneFound>
+          {/if}
+        {/if}
+      {:else}
+        <NoneFound>No Styles found</NoneFound>
+      {/if}
+      <div
+        class="ml-xxsmall mr-xxsmall flex justify-content-between
+        align-items-center">
+        <Type>
+          For suggestions or issues visit
+          <a href="https://github.com/six7/figma-batch-styler" target="_blank">
+            Github
+          </a>
+        </Type>
         <a href="https://github.com/six7/figma-batch-styler" target="_blank">
-          Github
+          <IconButton iconName={Github} />
         </a>
-      </Type>
-      <a href="https://github.com/six7/figma-batch-styler" target="_blank">
-        <IconButton iconName={Github} />
-      </a>
-    </div>
+      </div>
+    {/if}
   </div>
 </div>
