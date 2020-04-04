@@ -191,8 +191,6 @@ async function updateStyles({
   getStyles();
 }
 
-getStyles();
-
 figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
     const {

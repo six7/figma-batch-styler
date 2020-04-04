@@ -1,5 +1,6 @@
 <script>
   import { GlobalCSS } from "figma-plugin-ds-svelte";
+  import { onMount } from "svelte";
   import TextStyles from "./TextStyles.svelte";
   import ColorStyles from "./ColorStyles.svelte";
   import NoneFound from "./NoneFound.svelte";
@@ -24,6 +25,12 @@
   let availableFamilies = [];
   let loading = true;
   let visible = "text";
+
+  onMount(() => {
+    sendToUI({
+      type: "refresh"
+    });
+  });
 
   function sendToUI({ type, variant, values = {} }) {
     parent.postMessage(
