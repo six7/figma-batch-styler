@@ -60,23 +60,12 @@
 	}
 	input::placeholder {
 		color: var(--black3);
-		border: 1px solid transparent;
-	}
-	input:placeholder-shown {
-		border: 1px solid transparent;
-		background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcAAAAABCAYAAABJ5n7WAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgSURBVHgB7cMBCQAACMTAiR3sX1TQHr+DK2B+I0lSjj29qAEYlIbeBgAAAABJRU5ErkJggg==');
-		background-repeat: no-repeat;
-		background-position: center bottom -0.99px;
-		background-size: calc(100% - 10px) 1px;
 	}
     input:focus:placeholder-shown {
         border: 1px solid var(--blue);
         outline: 1px solid var(--blue);
         outline-offset: -2px;
     }
-	input:disabled:hover {
-		border: 1px solid transparent;
-	}
 	input:active, input:focus {
 		padding: 7px 4px 9px 7px;
 
