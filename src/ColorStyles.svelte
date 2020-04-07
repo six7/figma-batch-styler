@@ -25,6 +25,7 @@
   let hue = "";
   let saturation = "";
   let lightness = "";
+  let alpha = "";
   let chrome;
   let color;
 
@@ -34,6 +35,7 @@
     let originalHue = getHue(selectedStyles);
     let originalSaturation = getSaturation(selectedStyles);
     let originalLightness = getLightness(selectedStyles);
+    let originalAlpha = getAlpha(selectedStyles);
     let values = {};
     values.selectedStyles = selectedStyles;
     if (originalHue !== hue) {
@@ -44,6 +46,9 @@
     }
     if (originalLightness !== lightness) {
       values.lightness = Number(lightness);
+    }
+    if (originalAlpha !== alpha) {
+      values.alpha = Number(alpha);
     }
 
     sendToUI({
@@ -86,6 +91,10 @@
     return [...new Set(hsl.map(c => c.l))].join(", ");
   }
 
+  function getAlpha(styles) {
+    return [...new Set(styles.map(c => c.paints[0].opacity))].join(", ");
+  }
+
   function convertToHsl(color) {
     const { r, g, b } = color;
     let rawHsl = rgbToHsl(r * 255, g * 255, b * 255);
@@ -101,6 +110,7 @@
     hue = getHue(selectedStyles);
     saturation = getSaturation(selectedStyles);
     lightness = getLightness(selectedStyles);
+    alpha = getAlpha(selectedStyles);
   }
 </script>
 
@@ -166,6 +176,14 @@
             class="ml-xxsmall mr-xxsmall"
             name="lightness"
             bind:value={lightness} />
+        </div>
+        <div class="flex-grow">
+          <Label>Alpha</Label>
+          <Input
+            placeholder="Alpha"
+            class="ml-xxsmall mr-xxsmall"
+            name="alpha"
+            bind:value={alpha} />
         </div>
       </div>
       <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">

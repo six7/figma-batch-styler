@@ -149,7 +149,7 @@ function getHslFromStyle(style) {
   return { h, s, l };
 }
 
-function updateColorStyles({ selectedStyles, hue, saturation, lightness }) {
+function updateColorStyles({ selectedStyles, hue, saturation, lightness, alpha }) {
   let localStyles = figma.getLocalPaintStyles();
 
   return selectedStyles.map(async (selectedStyle) => {
@@ -164,8 +164,9 @@ function updateColorStyles({ selectedStyles, hue, saturation, lightness }) {
     });
     let rgbValues = getColors(selectedStyle);
     let originalHsl = convertToHsl(rgbValues);
+    let opacity = alpha ? alpha : selectedStyle.paints[0].opacity
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
-    hit.paints = [{ color: newColor, type: "SOLID" }];
+    hit.paints = [{ color: newColor, type: "SOLID", opacity }];
     return hit;
   });
 }
@@ -175,6 +176,7 @@ async function updateStyles({
   hue,
   saturation,
   lightness,
+  alpha,
   familyName,
   fontWeight,
   fontSize,
@@ -191,6 +193,7 @@ async function updateStyles({
         hue,
         saturation,
         lightness,
+        alpha,
       });
       figma.notify(
         `Successfully updated ${selectedStyles.length} color styles`
@@ -227,6 +230,7 @@ figma.ui.onmessage = (msg) => {
       hue,
       saturation,
       lightness,
+      alpha,
       variant,
     } = msg;
     updateStyles({
@@ -239,6 +243,7 @@ figma.ui.onmessage = (msg) => {
       hue,
       saturation,
       lightness,
+      alpha,
       variant,
     });
     return;
