@@ -56,13 +56,14 @@ function getStyles() {
   return;
 }
 
-function converLineHeightToFigma(value) {
+function convertLineHeightToFigma(value) {
   let lineHeight;
+  value = value.toString();
   var numbers = /^\d+(\.\d+)?$/;
   if (value.match(numbers)) {
     lineHeight = {
       unit: "PIXELS",
-      value: Number(lineHeight),
+      value: Number(value),
     };
   } else if (
     value.trim().slice(-1) === "%" &&
@@ -70,7 +71,7 @@ function converLineHeightToFigma(value) {
     ) {
     lineHeight = {
       unit: "PERCENT",
-      value: Number(lineHeight.slice(0, -1)),
+      value: Number(value.slice(0, -1)),
     };
   } else {
     lineHeight = {
@@ -102,7 +103,7 @@ function updateTextStyles({
     }
     let family = familyName ? familyName : selectedStyle.fontName.family;
     let size = fontSize ? fontSize : selectedStyle.fontSize;
-    let lh = lineHeight ? lineHeight : converLineHeightToFigma(selectedStyle.lineHeight);
+    let lh = lineHeight ? lineHeight : convertLineHeightToFigma(selectedStyle.lineHeight);
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
     await figma.loadFontAsync({ family, style });
     hit.fontName = {
