@@ -91,7 +91,17 @@ function updateTextStyles({
 }) {
   let localStyles = figma.getLocalTextStyles();
 
-  return selectedStyles.map(async (selectedStyle) => {
+  return selectedStyles.map(async (selectedStyle, index) => {
+    console.log("length of styles", selectedStyles.length, lineHeight, selectedStyle.lineHeight)
+    let newLineHeight;
+    if (lineHeight.length > 1) {
+      if (lineHeight.length === selectedStyles.length) {
+        newLineHeight = lineHeight[index]
+        console.log("new", newLineHeight)
+      }
+    } else {
+      newLineHeight = lineHeight[0]
+    }
     let style;
     if (fontMappings) {
       let hit = fontMappings.find(
@@ -103,7 +113,7 @@ function updateTextStyles({
     }
     let family = familyName ? familyName : selectedStyle.fontName.family;
     let size = fontSize ? fontSize : selectedStyle.fontSize;
-    let lh = lineHeight ? lineHeight : convertLineHeightToFigma(selectedStyle.lineHeight);
+    let lh = newLineHeight ? newLineHeight : convertLineHeightToFigma(selectedStyle.lineHeight);
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
     await figma.loadFontAsync({ family, style });
     hit.fontName = {

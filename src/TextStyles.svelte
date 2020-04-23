@@ -89,28 +89,33 @@
       values.fontSize = Number(fontSize);
     }
     if (originalLineHeights !== lineHeight) {
-      var numbers = /^\d+(\.\d+)?$/;
-      if (lineHeight.match(numbers)) {
-        values.lineHeight = {
-          unit: "PIXELS",
-          value: Number(lineHeight)
-        };
-      } else if (
-        lineHeight.trim().slice(-1) === "%" &&
-        lineHeight
-          .trim()
-          .slice(0, -1)
-          .match(numbers)
-      ) {
-        values.lineHeight = {
-          unit: "PERCENT",
-          value: Number(lineHeight.slice(0, -1))
-        };
-      } else {
-        values.lineHeight = {
-          unit: "AUTO"
-        };
-      }
+      let lineHeightMappings = lineHeight.split(",").map(l => l.trim())
+      let newLineHeights = lineHeightMappings.map(lh => {
+        lh = lh.toString();
+        var numbers = /^\d+(\.\d+)?$/;
+        if (lh.match(numbers)) {
+          return {
+            unit: "PIXELS",
+            value: Number(lh)
+          };
+        } else if (
+          lh.trim().slice(-1) === "%" &&
+          lh
+            .trim()
+            .slice(0, -1)
+            .match(numbers)
+        ) {
+          return {
+            unit: "PERCENT",
+            value: Number(lh.slice(0, -1))
+          };
+        } else {
+          return {
+            unit: "AUTO"
+          };
+        }
+      })
+      values.lineHeight = newLineHeights;
     }
 
     sendToUI({
