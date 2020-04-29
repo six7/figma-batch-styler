@@ -68,7 +68,7 @@ function convertLineHeightToFigma(value) {
   } else if (
     value.trim().slice(-1) === "%" &&
     value.trim().slice(0, -1).match(numbers)
-    ) {
+  ) {
     lineHeight = {
       unit: "PERCENT",
       value: Number(value.slice(0, -1)),
@@ -92,15 +92,23 @@ function updateTextStyles({
   let localStyles = figma.getLocalTextStyles();
 
   return selectedStyles.map(async (selectedStyle, index) => {
-    console.log("length of styles", selectedStyles.length, lineHeight, selectedStyle.lineHeight)
     let newLineHeight;
-    if (lineHeight.length > 1) {
-      if (lineHeight.length === selectedStyles.length) {
-        newLineHeight = lineHeight[index]
-        console.log("new", newLineHeight)
+    let newFontSize;
+    if (lineHeight) {
+      if (lineHeight.length > 1) {
+        if (lineHeight.length === selectedStyles.length) {
+          newLineHeight = lineHeight[index];
+        }
+      } else {
+        newLineHeight = lineHeight[0];
+      }
+    }
+    if (fontSize.length > 1) {
+      if (fontSize.length === selectedStyles.length) {
+        newFontSize = fontSize[index];
       }
     } else {
-      newLineHeight = lineHeight[0]
+      newFontSize = fontSize[0];
     }
     let style;
     if (fontMappings) {
@@ -112,8 +120,10 @@ function updateTextStyles({
       style = fontWeight ? fontWeight : selectedStyle.fontName.style;
     }
     let family = familyName ? familyName : selectedStyle.fontName.family;
-    let size = fontSize ? fontSize : selectedStyle.fontSize;
-    let lh = newLineHeight ? newLineHeight : convertLineHeightToFigma(selectedStyle.lineHeight);
+    let size = newFontSize ? newFontSize : selectedStyle.fontSize;
+    let lh = newLineHeight
+      ? newLineHeight
+      : convertLineHeightToFigma(selectedStyle.lineHeight);
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
     await figma.loadFontAsync({ family, style });
     hit.fontName = {
@@ -160,7 +170,13 @@ function getHslFromStyle(style) {
   return { h, s, l };
 }
 
-function updateColorStyles({ selectedStyles, hue, saturation, lightness, alpha }) {
+function updateColorStyles({
+  selectedStyles,
+  hue,
+  saturation,
+  lightness,
+  alpha,
+}) {
   let localStyles = figma.getLocalPaintStyles();
 
   return selectedStyles.map(async (selectedStyle) => {
@@ -175,7 +191,7 @@ function updateColorStyles({ selectedStyles, hue, saturation, lightness, alpha }
     });
     let rgbValues = getColors(selectedStyle);
     let originalHsl = convertToHsl(rgbValues);
-    let opacity = alpha ? alpha : selectedStyle.paints[0].opacity
+    let opacity = alpha ? alpha : selectedStyle.paints[0].opacity;
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
     hit.paints = [{ color: newColor, type: "SOLID", opacity }];
     return hit;

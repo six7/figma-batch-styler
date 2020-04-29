@@ -86,7 +86,9 @@
       values.fontWeight = fontWeight;
     }
     if (originalFontSizes !== fontSize) {
-      values.fontSize = Number(fontSize);
+      let fontSizeMappings = fontSize.split(",").map(l => l.trim())
+      let newFontSizes = fontSizeMappings.map(fs => Number(fs));
+      values.fontSize = newFontSizes;
     }
     if (originalLineHeights !== lineHeight) {
       let lineHeightMappings = lineHeight.split(",").map(l => l.trim())
