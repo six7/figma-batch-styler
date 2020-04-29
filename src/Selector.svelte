@@ -39,6 +39,16 @@
       Array.from(e.target.selectedOptions, n => JSON.parse(n.value))
     );
   }
+
+  function getColorClass(color) {
+    return color ? "value-item" : "";
+  }
+
+  function getColorStyle(color) {
+    return color
+      ? `--background-color: rgb(${Object.values(color).join(", ")}`
+      : "";
+  }
 </script>
 
 <style lang="scss">
@@ -81,6 +91,17 @@
   .type-item::selection {
     background: red;
   }
+
+  .value-item::before {
+    content: "";
+    position: relative;
+    display: inline-block;
+    border-radius: 4px;
+    margin-right: 2px;
+    width: 8px;
+    height: 8px;
+    background: var(--background-color);
+  }
 </style>
 
 <div class="selector-wrapper">
@@ -112,7 +133,9 @@
       {#each filteredStyles as style}
         <option
           value={JSON.stringify(style)}
-          class="flex type-item pt-xxsmall pb-xxsmall pl-xxsmall pr-xxsmall">
+          style={getColorStyle(style.color)}
+          class="{getColorClass(style.color)} flex type-item pt-xxsmall
+          pb-xxsmall pl-xxsmall pr-xxsmall">
           {style.name}
         </option>
       {/each}

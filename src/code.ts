@@ -19,8 +19,14 @@ figma.showUI(__html__, {
 
 async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
   let colorStyles = figmaColorStyles.map((s) => {
+    const { r, g, b } = s.paints.length && s.paints[0].color;
+    const color = {
+      r: r * 255,
+      g: g * 255,
+      b: b * 255,
+    };
     const { name, paints, id } = s;
-    return { name, paints, id };
+    return { name, paints, id, color };
   });
   let textStyles = figmaTextStyles.map((s) => {
     const { name, fontName, fontSize, id } = s;
@@ -189,9 +195,7 @@ function updateColorStyles({
       s: newSaturation,
       l: newLightness,
     });
-    console.log({newColor})
     let rgbValues = getColors(selectedStyle);
-    console.log({rgbValues})
     let originalHsl = convertToHsl(rgbValues);
     let opacity = alpha ? alpha : selectedStyle.paints[0].opacity;
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
