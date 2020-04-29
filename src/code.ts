@@ -181,15 +181,17 @@ function updateColorStyles({
 
   return selectedStyles.map(async (selectedStyle) => {
     let { h, s, l } = getHslFromStyle(selectedStyle);
-    let newHue = hue ? hue : h;
-    let newSaturation = saturation ? saturation : s;
-    let newLightness = lightness ? lightness : l;
+    let newHue = hue == undefined ? h : hue;
+    let newSaturation = saturation == undefined ? s : saturation;
+    let newLightness = lightness == undefined ? l : lightness;
     let newColor = convertToRgb({
       h: newHue,
       s: newSaturation,
       l: newLightness,
     });
+    console.log({newColor})
     let rgbValues = getColors(selectedStyle);
+    console.log({rgbValues})
     let originalHsl = convertToHsl(rgbValues);
     let opacity = alpha ? alpha : selectedStyle.paints[0].opacity;
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
