@@ -109,12 +109,14 @@ function updateTextStyles({
         newLineHeight = lineHeight[0];
       }
     }
-    if (fontSize.length > 1) {
-      if (fontSize.length === selectedStyles.length) {
-        newFontSize = fontSize[index];
+    if (fontSize) {
+      if (fontSize.length > 1) {
+        if (fontSize.length === selectedStyles.length) {
+          newFontSize = fontSize[index];
+        }
+      } else {
+        newFontSize = fontSize[0];
       }
-    } else {
-      newFontSize = fontSize[0];
     }
     let style;
     if (fontMappings) {
@@ -131,6 +133,7 @@ function updateTextStyles({
       ? newLineHeight
       : convertLineHeightToFigma(selectedStyle.lineHeight);
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
+
     await figma.loadFontAsync({ family, style });
     hit.fontName = {
       family,
