@@ -31,11 +31,11 @@
       return {
         ...e,
         user_id: "placeholder@placeholder.com"
-      }
-    })
+      };
+    });
     const data = {
       api_key: "f6e5890a03d9d9dc4f98f65f16a33838",
-      events,
+      events
     };
 
     try {
@@ -52,9 +52,11 @@
   }
 
   onMount(() => {
-    sendToUI({
-      type: "refresh"
-    });
+    setTimeout(() => {
+      sendToUI({
+        type: "refresh"
+      });
+    }, 1000);
   });
 
   function sendToUI({ type, variant, values = {} }) {
@@ -91,7 +93,7 @@
       loading = false;
     }
     if (event.data.pluginMessage.type === "trackEvent") {
-      trackData(event.data.pluginMessage.data)
+      trackData(event.data.pluginMessage.data);
     }
   };
 </script>
