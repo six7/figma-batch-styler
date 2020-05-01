@@ -18,16 +18,20 @@ figma.showUI(__html__, {
 // posted message.
 
 async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
-  let colorStyles = figmaColorStyles.map((s) => {
-    const { r, g, b } = s.paints.length && s.paints[0].color;
-    const color = {
-      r: r * 255,
-      g: g * 255,
-      b: b * 255,
-    };
-    const { name, paints, id } = s;
-    return { name, paints, id, color };
-  });
+  let colorStyles = figmaColorStyles
+    .map((s) => {
+      if (s.paints.length) {
+        const { r, g, b } = s.paints.length && s.paints[0].color;
+        const color = {
+          r: r * 255,
+          g: g * 255,
+          b: b * 255,
+        };
+        const { name, paints, id } = s;
+        return { name, paints, id, color };
+      }
+    })
+    .filter((n) => n);
   let textStyles = figmaTextStyles.map((s) => {
     const { name, fontName, fontSize, id } = s;
     let lineHeight;
@@ -49,6 +53,7 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
     colorStyles,
     availableFonts,
   });
+  trackEvent([{ event_type: "received_styles" }]);
 }
 
 function getStyles() {
@@ -207,6 +212,13 @@ function updateColorStyles({
   });
 }
 
+function trackEvent(data) {
+  figma.ui.postMessage({
+    type: "trackEvent",
+    data,
+  });
+}
+
 async function updateStyles({
   selectedStyles,
   hue,
@@ -234,6 +246,12 @@ async function updateStyles({
       figma.notify(
         `Successfully updated ${selectedStyles.length} color styles`
       );
+      trackEvent([
+        {
+          event_type: "changed_color_style",
+          event_properties: { size: selectedStyles.length },
+        },
+      ]);
     } else {
       styleChanges = updateTextStyles({
         selectedStyles,
@@ -244,15 +262,25 @@ async function updateStyles({
         fontMappings,
       });
       figma.notify(`Successfully updated ${selectedStyles.length} text styles`);
+      trackEvent([
+        {
+          event_type: "changed_text_style",
+          event_properties: { size: selectedStyles.length },
+        },
+      ]);
     }
 
     await Promise.all(styleChanges);
   } catch (e) {
     figma.notify("Encountered an error, full output in console");
     console.error(e);
+    trackEvent([{ event_type: "error", message: e }]);
   }
   getStyles();
 }
+
+trackEvent([{ event_type: "launched_plugin" }]);
+
 
 figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
@@ -289,6 +317,7 @@ figma.ui.onmessage = (msg) => {
 
     return;
   }
+
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.

@@ -26,6 +26,31 @@
   let loading = true;
   let visible = "text";
 
+  async function trackData(receivedEvents = []) {
+    let events = receivedEvents.map(e => {
+      return {
+        ...e,
+        user_id: "placeholder@placeholder.com"
+      }
+    })
+    const data = {
+      api_key: "f6e5890a03d9d9dc4f98f65f16a33838",
+      events,
+    };
+
+    try {
+      const response = await fetch("https://api.amplitude.com/2/httpapi", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (e) {
+      console.log("error", e);
+    }
+  }
+
   onMount(() => {
     sendToUI({
       type: "refresh"
@@ -64,6 +89,9 @@
         visible = "color";
       }
       loading = false;
+    }
+    if (event.data.pluginMessage.type === "trackEvent") {
+      trackData(event.data.pluginMessage.data)
     }
   };
 </script>
