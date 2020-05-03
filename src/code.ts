@@ -20,7 +20,7 @@ figma.showUI(__html__, {
 async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
   let colorStyles = figmaColorStyles
     .map((s) => {
-      if (s.paints.length) {
+      if (s.paints.length && s.paints[0].type === "SOLID") {
         const { r, g, b } = s.paints.length && s.paints[0].color;
         const color = {
           r: r * 255,
@@ -57,6 +57,7 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
 }
 
 function getStyles() {
+
   const figmaTextStyles = figma.getLocalTextStyles();
   const figmaColorStyles = figma.getLocalPaintStyles();
   if (figmaTextStyles.length || figmaColorStyles.length) {
@@ -281,7 +282,6 @@ async function updateStyles({
 
 trackEvent([{ event_type: "launched_plugin" }]);
 
-
 figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
     const {
@@ -317,7 +317,6 @@ figma.ui.onmessage = (msg) => {
 
     return;
   }
-
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.
