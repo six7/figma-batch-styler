@@ -43,7 +43,14 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
     } else {
       lineHeight = Math.round(s.lineHeight.value * 100) / 100;
     }
-    return { name, fontName, fontSize, lineHeight, id };
+    let letterSpacing;
+    if (s.letterSpacing.unit === "PERCENT") {
+      let value = Math.round(s.letterSpacing.value * 100) / 100;
+      letterSpacing = `${value}%`;
+    } else {
+      letterSpacing = Math.round(s.letterSpacing.value * 100) / 100;
+    }
+    return { name, fontName, fontSize, lineHeight, letterSpacing, id };
   });
 
   let availableFonts = await figma.listAvailableFontsAsync();
@@ -57,7 +64,6 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
 }
 
 function getStyles() {
-
   const figmaTextStyles = figma.getLocalTextStyles();
   const figmaColorStyles = figma.getLocalPaintStyles();
   if (figmaTextStyles.length || figmaColorStyles.length) {
@@ -93,18 +99,41 @@ function convertLineHeightToFigma(value) {
   return lineHeight;
 }
 
+function convertLetterSpacingToFigma(value) {
+  let letterSpacing;
+  value = value.toString();
+  var numbers = /^\d+(\.\d+)?$/;
+  if (value.match(numbers)) {
+    letterSpacing = {
+      unit: "PIXELS",
+      value: Number(value),
+    };
+  } else if (
+    value.trim().slice(-1) === "%" &&
+    value.trim().slice(0, -1).match(numbers)
+  ) {
+    letterSpacing = {
+      unit: "PERCENT",
+      value: Number(value.slice(0, -1)),
+    };
+  }
+  return letterSpacing;
+}
+
 function updateTextStyles({
   selectedStyles,
   familyName,
   fontWeight,
   fontSize,
   lineHeight,
+  letterSpacing,
   fontMappings,
 }) {
   let localStyles = figma.getLocalTextStyles();
 
   return selectedStyles.map(async (selectedStyle, index) => {
     let newLineHeight;
+    let newLetterSpacing;
     let newFontSize;
     if (lineHeight) {
       if (lineHeight.length > 1) {
@@ -113,6 +142,15 @@ function updateTextStyles({
         }
       } else {
         newLineHeight = lineHeight[0];
+      }
+    }
+    if (letterSpacing) {
+      if (letterSpacing.length > 1) {
+        if (letterSpacing.length === selectedStyles.length) {
+          newLetterSpacing = letterSpacing[index];
+        }
+      } else {
+        newLetterSpacing = letterSpacing[0];
       }
     }
     if (fontSize) {
@@ -138,6 +176,9 @@ function updateTextStyles({
     let lh = newLineHeight
       ? newLineHeight
       : convertLineHeightToFigma(selectedStyle.lineHeight);
+    let ls = newLetterSpacing
+      ? newLetterSpacing
+      : convertLetterSpacingToFigma(selectedStyle.letterSpacing);
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
 
     await figma.loadFontAsync({ family, style });
@@ -148,6 +189,9 @@ function updateTextStyles({
     hit.fontSize = size;
     hit.lineHeight = {
       ...lh,
+    };
+    hit.letterSpacing = {
+      ...ls,
     };
     return hit;
   });
@@ -230,6 +274,7 @@ async function updateStyles({
   fontWeight,
   fontSize,
   lineHeight,
+  letterSpacing,
   fontMappings,
   variant,
 }) {
@@ -260,6 +305,7 @@ async function updateStyles({
         fontWeight,
         fontSize,
         lineHeight,
+        letterSpacing,
         fontMappings,
       });
       figma.notify(`Successfully updated ${selectedStyles.length} text styles`);
@@ -290,6 +336,7 @@ figma.ui.onmessage = (msg) => {
       fontWeight,
       fontSize,
       lineHeight,
+      letterSpacing,
       fontMappings,
       hue,
       saturation,
@@ -303,6 +350,7 @@ figma.ui.onmessage = (msg) => {
       fontWeight,
       fontSize,
       lineHeight,
+      letterSpacing,
       fontMappings,
       hue,
       saturation,
