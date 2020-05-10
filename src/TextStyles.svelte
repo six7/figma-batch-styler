@@ -31,6 +31,7 @@
   let familyName;
   let fontSize;
   let lineHeight;
+  let letterSpacing;
   let weightsDialogVisible = false;
   let loading = true;
 
@@ -74,6 +75,7 @@
     let originalFontWeights = getFontWeights(selectedStyles);
     let originalFontSizes = getFontSizes(selectedStyles);
     let originalLineHeights = getLineHeights(selectedStyles);
+    let originalLetterSpacings = getLetterSpacings(selectedStyles);
     let values = {};
     values.selectedStyles = selectedStyles;
     if (originalFamilyNames !== familyName) {
@@ -119,6 +121,31 @@
       })
       values.lineHeight = newLineHeights;
     }
+    if (originalLetterSpacings !== letterSpacing) {
+      let letterSpaceMappings = letterSpacing.split(",").map(l => l.trim())
+      let newLetterSpacings = letterSpaceMappings.map(ls => {
+        ls = ls.toString();
+        var numbers = /^\d+(\.\d+)?$/;
+        if (ls.match(numbers)) {
+          return {
+            unit: "PIXELS",
+            value: Number(ls)
+          };
+        } else if (
+          ls.trim().slice(-1) === "%" &&
+          ls
+            .trim()
+            .slice(0, -1)
+            .match(numbers)
+        ) {
+          return {
+            unit: "PERCENT",
+            value: Number(ls.slice(0, -1))
+          };
+        }
+      })
+      values.letterSpacing = newLetterSpacings;
+    }
 
     sendToUI({
       type: "update",
@@ -143,12 +170,17 @@
     return [...new Set(selectedStyles.map(n => n.lineHeight))].join(", ");
   }
 
+  function getLetterSpacings(selectedStyles) {
+    return [...new Set(selectedStyles.map(n => n.letterSpacing))].join(", ");
+  }
+
   function setSelectedStyles(selected) {
     selectedStyles = selected;
     familyName = getFamilyNames(selected);
     fontWeight = getFontWeights(selected);
     fontSize = getFontSizes(selected);
     lineHeight = getLineHeights(selected);
+    letterSpacing = getLetterSpacings(selected);
   }
 </script>
 
@@ -300,6 +332,14 @@
             class="ml-xxsmall mr-xxsmall"
             name="lineheight"
             bind:value={lineHeight} />
+        </div>
+        <div class="flex-grow">
+          <Label>Letter Spacing</Label>
+          <Input
+            placeholder="% or px"
+            class="ml-xxsmall mr-xxsmall"
+            name="letterspacing"
+            bind:value={letterSpacing} />
         </div>
       </div>
 
