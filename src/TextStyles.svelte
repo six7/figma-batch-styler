@@ -20,20 +20,22 @@
   export let styles = [];
   export let availableFamilies = [];
   export let sendToUI;
-  let styleFilter = "";
-  let currentFamily = {};
-  let availableFontNames = [];
-  let availableWeights = [];
-  let hasAllWeightsAvailable = true;
-  let selectedStyles = [];
-  let fontWeight = "";
-  let newFontWeights = [];
-  let familyName;
-  let fontSize;
-  let lineHeight;
-  let letterSpacing;
-  let weightsDialogVisible = false;
-  let loading = true;
+  let styleFilter = "",
+    currentFamily = {},
+    availableFontNames = [],
+    availableWeights = [],
+    hasAllWeightsAvailable = true,
+    selectedStyles = [],
+    fontWeight = "",
+    newFontWeights = [],
+    familyName,
+    styleName,
+    styleMatch,
+    fontSize,
+    lineHeight,
+    letterSpacing,
+    weightsDialogVisible = false,
+    loading = true;
 
   $: disabled = !selectedStyles.length;
   $: {
@@ -71,6 +73,7 @@
   }
 
   function update() {
+    let originalStyleNames = getStyleNames(selectedStyles);
     let originalFamilyNames = getFamilyNames(selectedStyles);
     let originalFontWeights = getFontWeights(selectedStyles);
     let originalFontSizes = getFontSizes(selectedStyles);
@@ -78,6 +81,10 @@
     let originalLetterSpacings = getLetterSpacings(selectedStyles);
     let values = {};
     values.selectedStyles = selectedStyles;
+    values.styleMatch = styleMatch;
+    if (originalStyleNames !== styleName) {
+      values.styleName = styleName;
+    }
     if (originalFamilyNames !== familyName) {
       values.familyName = familyName;
     }
@@ -88,12 +95,12 @@
       values.fontWeight = fontWeight;
     }
     if (originalFontSizes !== fontSize) {
-      let fontSizeMappings = fontSize.split(",").map(l => l.trim())
+      let fontSizeMappings = fontSize.split(",").map(l => l.trim());
       let newFontSizes = fontSizeMappings.map(fs => Number(fs));
       values.fontSize = newFontSizes;
     }
     if (originalLineHeights !== lineHeight) {
-      let lineHeightMappings = lineHeight.split(",").map(l => l.trim())
+      let lineHeightMappings = lineHeight.split(",").map(l => l.trim());
       let newLineHeights = lineHeightMappings.map(lh => {
         lh = lh.toString();
         var numbers = /^\d+(\.\d+)?$/;
@@ -118,11 +125,11 @@
             unit: "AUTO"
           };
         }
-      })
+      });
       values.lineHeight = newLineHeights;
     }
     if (originalLetterSpacings !== letterSpacing) {
-      let letterSpaceMappings = letterSpacing.split(",").map(l => l.trim())
+      let letterSpaceMappings = letterSpacing.split(",").map(l => l.trim());
       let newLetterSpacings = letterSpaceMappings.map(ls => {
         ls = ls.toString();
         var numbers = /^\d+(\.\d+)?$/;
@@ -143,7 +150,7 @@
             value: Number(ls.slice(0, -1))
           };
         }
-      })
+      });
       values.letterSpacing = newLetterSpacings;
     }
 
@@ -152,6 +159,10 @@
       values,
       variant: "TEXT"
     });
+  }
+
+  function getStyleNames(selectedStyles) {
+    return [...new Set(selectedStyles.map(n => n.name))].join(", ");
   }
 
   function getFamilyNames(selectedStyles) {
@@ -176,6 +187,7 @@
 
   function setSelectedStyles(selected) {
     selectedStyles = selected;
+    styleName = getStyleNames(selected);
     familyName = getFamilyNames(selected);
     fontWeight = getFontWeights(selected);
     fontSize = getFontSizes(selected);
@@ -295,6 +307,7 @@
 
   <hr class="mt-xxsmall" />
   <form on:submit={e => e.preventDefault()}>
+
     <fieldset {disabled}>
       <Label>Family</Label>
       <AutoComplete
@@ -343,6 +356,19 @@
         </div>
       </div>
 
+      <Label>Name</Label>
+      <div class="flex flex-between space-x-2">
+        <Input
+          placeholder="Style Name"
+          class="ml-xxsmall mr-xxsmall"
+          name="name"
+          bind:value={styleName} />
+        <Input
+          placeholder="Match (optional)"
+          class="ml-xxsmall mr-xxsmall"
+          name="match"
+          bind:value={styleMatch} />
+      </div>
       <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
         <Button {disabled} on:click={update}>Update styles</Button>
       </div>

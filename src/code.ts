@@ -122,6 +122,8 @@ function convertLetterSpacingToFigma(value) {
 
 function updateTextStyles({
   selectedStyles,
+  styleName,
+  styleMatch,
   familyName,
   fontWeight,
   fontSize,
@@ -153,6 +155,7 @@ function updateTextStyles({
         newLetterSpacing = letterSpacing[0];
       }
     }
+
     if (fontSize) {
       if (fontSize.length > 1) {
         if (fontSize.length === selectedStyles.length) {
@@ -182,6 +185,11 @@ function updateTextStyles({
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
 
     await figma.loadFontAsync({ family, style });
+    if (styleMatch !== null && styleName !== undefined) {
+      hit.name = hit.name.replace(styleMatch, styleName);
+    } else if (styleName) {
+      hit.name = styleName;
+    }
     hit.fontName = {
       family,
       style,
@@ -231,6 +239,8 @@ function getHslFromStyle(style) {
 
 function updateColorStyles({
   selectedStyles,
+  styleName,
+  styleMatch,
   hue,
   saturation,
   lightness,
@@ -253,6 +263,11 @@ function updateColorStyles({
     let opacity = alpha ? alpha : selectedStyle.paints[0].opacity;
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
     hit.paints = [{ color: newColor, type: "SOLID", opacity }];
+    if (styleMatch !== null && styleName !== undefined) {
+      hit.name = hit.name.replace(styleMatch, styleName);
+    } else if (styleName) {
+      hit.name = styleName;
+    }
     return hit;
   });
 }
@@ -266,6 +281,8 @@ function trackEvent(data) {
 
 async function updateStyles({
   selectedStyles,
+  styleName,
+  styleMatch,
   hue,
   saturation,
   lightness,
@@ -284,6 +301,8 @@ async function updateStyles({
     if (variant === "COLOR") {
       styleChanges = updateColorStyles({
         selectedStyles,
+        styleName,
+        styleMatch,
         hue,
         saturation,
         lightness,
@@ -301,6 +320,8 @@ async function updateStyles({
     } else {
       styleChanges = updateTextStyles({
         selectedStyles,
+        styleName,
+        styleMatch,
         familyName,
         fontWeight,
         fontSize,
@@ -332,6 +353,8 @@ figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
     const {
       selectedStyles,
+      styleName,
+      styleMatch,
       familyName,
       fontWeight,
       fontSize,
@@ -346,6 +369,8 @@ figma.ui.onmessage = (msg) => {
     } = msg;
     updateStyles({
       selectedStyles,
+      styleName,
+      styleMatch,
       familyName,
       fontWeight,
       fontSize,

@@ -18,20 +18,23 @@
   export let styles = [];
   export let sendToUI;
 
-  let styleFilter = "";
-  let selectedStyles = [];
-  let colors = [];
-  let hslValues = [];
-  let hue = "";
-  let saturation = "";
-  let lightness = "";
-  let alpha = "";
-  let chrome;
-  let color;
+  let styleFilter = "",
+    selectedStyles = [],
+    colors = [],
+    hslValues = [],
+    hue = "",
+    saturation = "",
+    lightness = "",
+    alpha = "",
+    chrome,
+    color,
+    styleName,
+    styleMatch;
 
   $: disabled = !selectedStyles.length;
 
   function update() {
+    let originalStyleNames = getStyleNames(selectedStyles);
     let originalHue = getHue(selectedStyles);
     let originalSaturation = getSaturation(selectedStyles);
     let originalLightness = getLightness(selectedStyles);
@@ -49,6 +52,10 @@
     }
     if (originalAlpha !== alpha) {
       values.alpha = Number(alpha);
+    }
+    values.styleMatch = styleMatch;
+    if (originalStyleNames !== styleName) {
+      values.styleName = styleName;
     }
 
     sendToUI({
@@ -74,6 +81,10 @@
     ];
 
     return rgbValues.map(c => convertToHsl(c));
+  }
+
+  function getStyleNames(selectedStyles) {
+    return [...new Set(selectedStyles.map(n => n.name))].join(", ");
   }
 
   function getHue(styles) {
@@ -107,6 +118,7 @@
 
   function setSelectedStyles(selected) {
     selectedStyles = selected;
+    styleName = getStyleNames(selected);
     hue = getHue(selectedStyles);
     saturation = getSaturation(selectedStyles);
     lightness = getLightness(selectedStyles);
@@ -186,6 +198,21 @@
             bind:value={alpha} />
         </div>
       </div>
+
+      <Label>Name</Label>
+      <div class="flex flex-between space-x-2">
+        <Input
+          placeholder="Style Name"
+          class="ml-xxsmall mr-xxsmall"
+          name="name"
+          bind:value={styleName} />
+        <Input
+          placeholder="Match (optional)"
+          class="ml-xxsmall mr-xxsmall"
+          name="match"
+          bind:value={styleMatch} />
+      </div>
+
       <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
         <Button {disabled} on:click={update}>Update styles</Button>
       </div>
