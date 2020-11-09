@@ -10,7 +10,7 @@ import { hslToRgb, rgbToHsl } from "./color-helpers.js";
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 620,
+  height: 700,
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
