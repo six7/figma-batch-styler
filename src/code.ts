@@ -1,4 +1,9 @@
-import { hslToRgb, rgbToHsl } from "./color-helpers.js";
+import {
+  hslToRgb,
+  rgbToHsl,
+  figmaRGBToHex,
+  hexToFigmaRGB,
+} from "./color-helpers.js";
 import {
   convertLetterSpacingToFigma,
   convertLineHeightToFigma,
@@ -91,37 +96,25 @@ function updateTextStyles({
 }) {
   let localStyles = figma.getLocalTextStyles();
 
-  return selectedStyles.map(async (selectedStyle, index) => {
+  return selectedStyles.map(async (selectedStyle, idx) => {
     let newLineHeight;
     let newLetterSpacing;
     let newFontSize;
     if (lineHeight) {
-      if (lineHeight.length > 1) {
-        if (lineHeight.length === selectedStyles.length) {
-          newLineHeight = lineHeight[index];
-        }
-      } else {
-        newLineHeight = lineHeight[0];
-      }
+      newLineHeight = convertLineHeightToFigma(
+        fillToLengthOfSelected(lineHeight, selectedStyles)[idx]
+      );
     }
     if (letterSpacing) {
-      if (letterSpacing.length > 1) {
-        if (letterSpacing.length === selectedStyles.length) {
-          newLetterSpacing = letterSpacing[index];
-        }
-      } else {
-        newLetterSpacing = letterSpacing[0];
-      }
+      newLetterSpacing = convertLetterSpacingToFigma(
+        fillToLengthOfSelected(letterSpacing, selectedStyles)[idx]
+      );
     }
 
     if (fontSize) {
-      if (fontSize.length > 1) {
-        if (fontSize.length === selectedStyles.length) {
-          newFontSize = fontSize[index];
-        }
-      } else {
-        newFontSize = fontSize[0];
-      }
+      newFontSize = Number(
+        fillToLengthOfSelected(fontSize, selectedStyles)[idx]
+      );
     }
     let style;
     if (fontMappings) {
@@ -195,6 +188,13 @@ function getHslFromStyle(style) {
   return { h, s, l };
 }
 
+function fillToLengthOfSelected(property, styles) {
+  return new Array(styles.length)
+    .fill(property.split(",").map((i) => i.trim()))
+    .flat()
+    .slice(0, styles.length);
+}
+
 function updateColorStyles({
   selectedStyles,
   styleName,
@@ -203,22 +203,39 @@ function updateColorStyles({
   saturation,
   lightness,
   alpha,
+  hex,
 }) {
   let localStyles = figma.getLocalPaintStyles();
 
-  return selectedStyles.map(async (selectedStyle) => {
+  return selectedStyles.map(async (selectedStyle, idx) => {
     let { h, s, l } = getHslFromStyle(selectedStyle);
-    let newHue = hue == undefined ? h : hue;
-    let newSaturation = saturation == undefined ? s : saturation;
-    let newLightness = lightness == undefined ? l : lightness;
-    let newColor = convertToRgb({
-      h: newHue,
-      s: newSaturation,
-      l: newLightness,
-    });
-    let rgbValues = getColors(selectedStyle);
-    let originalHsl = convertToHsl(rgbValues);
-    let opacity = alpha ? alpha : selectedStyle.paints[0].opacity;
+    let newHue =
+      hue == undefined
+        ? h
+        : Number(fillToLengthOfSelected(hue, selectedStyles)[idx]);
+    let newSaturation =
+      saturation == undefined
+        ? s
+        : Number(fillToLengthOfSelected(saturation, selectedStyles)[idx]);
+    let newLightness =
+      lightness == undefined
+        ? l
+        : Number(fillToLengthOfSelected(lightness, selectedStyles)[idx]);
+    let newColor;
+    if (hex) {
+      newColor = hexToFigmaRGB(
+        fillToLengthOfSelected(hex, selectedStyles)[idx]
+      );
+    } else {
+      newColor = convertToRgb({
+        h: newHue,
+        s: newSaturation,
+        l: newLightness,
+      });
+    }
+    let opacity = alpha
+      ? Number(fillToLengthOfSelected(alpha, selectedStyles)[idx])
+      : selectedStyle.paints[0].opacity;
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
     hit.paints = [{ color: newColor, type: "SOLID", opacity }];
     if (styleMatch !== null && styleName !== undefined) {
@@ -245,6 +262,7 @@ async function updateStyles({
   saturation,
   lightness,
   alpha,
+  hex,
   familyName,
   fontWeight,
   fontSize,
@@ -265,6 +283,7 @@ async function updateStyles({
         saturation,
         lightness,
         alpha,
+        hex,
       });
       figma.notify(
         `Successfully updated ${selectedStyles.length} color styles`
@@ -309,38 +328,7 @@ trackEvent([{ event_type: "launched_plugin" }]);
 
 figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
-    const {
-      selectedStyles,
-      styleName,
-      styleMatch,
-      familyName,
-      fontWeight,
-      fontSize,
-      lineHeight,
-      letterSpacing,
-      fontMappings,
-      hue,
-      saturation,
-      lightness,
-      alpha,
-      variant,
-    } = msg;
-    updateStyles({
-      selectedStyles,
-      styleName,
-      styleMatch,
-      familyName,
-      fontWeight,
-      fontSize,
-      lineHeight,
-      letterSpacing,
-      fontMappings,
-      hue,
-      saturation,
-      lightness,
-      alpha,
-      variant,
-    });
+    updateStyles(msg);
     return;
   }
   if (msg.type === "refresh") {
