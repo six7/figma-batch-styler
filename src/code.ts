@@ -190,7 +190,11 @@ function getHslFromStyle(style) {
 
 function fillToLengthOfSelected(property, styles) {
   return new Array(styles.length)
-    .fill(String(property).split(",").map((i) => i.trim()))
+    .fill(
+      String(property)
+        .split(",")
+        .map((i) => i.trim())
+    )
     .flat()
     .slice(0, styles.length);
 }
@@ -276,7 +280,9 @@ async function removeStyles({ selectedStyles }) {
   } catch (e) {
     figma.notify("Encountered an error, full output in console");
     console.error(e);
-    trackEvent([{ event_type: "error", message: e }]);
+    trackEvent([
+      { event_type: "error", event_properties: { message: JSON.stringify(e) } },
+    ]);
   }
   getStyles();
 }
@@ -346,7 +352,9 @@ async function updateStyles({
   } catch (e) {
     figma.notify("Encountered an error, full output in console");
     console.error(e);
-    trackEvent([{ event_type: "error", message: e }]);
+    trackEvent([
+      { event_type: "error", event_properties: { message: JSON.stringify(e) } },
+    ]);
   }
   getStyles();
 }
