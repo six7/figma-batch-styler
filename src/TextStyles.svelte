@@ -4,6 +4,10 @@
   import Input from "./Input.svelte";
   import Selector from "./Selector.svelte";
   import MissingWeightsDialog from "./MissingWeightsDialog.svelte";
+  import {
+    convertLetterSpacingToFigma,
+    convertLineHeightToFigma
+  } from "./helpers.ts";
 
   import {
     Button,
@@ -99,54 +103,14 @@
     if (originalLineHeights !== lineHeight) {
       let lineHeightMappings = lineHeight.split(",").map(l => l.trim());
       let newLineHeights = lineHeightMappings.map(lh => {
-        lh = lh.toString();
-        var numbers = /^\d+(\.\d+)?$/;
-        if (lh.match(numbers)) {
-          return {
-            unit: "PIXELS",
-            value: Number(lh)
-          };
-        } else if (
-          lh.trim().slice(-1) === "%" &&
-          lh
-            .trim()
-            .slice(0, -1)
-            .match(numbers)
-        ) {
-          return {
-            unit: "PERCENT",
-            value: Number(lh.slice(0, -1))
-          };
-        } else {
-          return {
-            unit: "AUTO"
-          };
-        }
+        return convertLineHeightToFigma(lh)
       });
       values.lineHeight = newLineHeights;
     }
     if (originalLetterSpacings !== letterSpacing) {
       let letterSpaceMappings = letterSpacing.split(",").map(l => l.trim());
       let newLetterSpacings = letterSpaceMappings.map(ls => {
-        ls = ls.toString();
-        var numbers = /^\d+(\.\d+)?$/;
-        if (ls.match(numbers)) {
-          return {
-            unit: "PIXELS",
-            value: Number(ls)
-          };
-        } else if (
-          ls.trim().slice(-1) === "%" &&
-          ls
-            .trim()
-            .slice(0, -1)
-            .match(numbers)
-        ) {
-          return {
-            unit: "PERCENT",
-            value: Number(ls.slice(0, -1))
-          };
-        }
+        return convertLetterSpacingToFigma(ls);
       });
       values.letterSpacing = newLetterSpacings;
     }
