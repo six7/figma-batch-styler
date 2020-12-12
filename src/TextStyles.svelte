@@ -29,7 +29,7 @@
     fontWeight = "",
     newFontWeights = [],
     familyName,
-    styleName,
+    styleName = "",
     styleMatch,
     fontSize,
     lineHeight,
@@ -73,7 +73,6 @@
   }
 
   function update() {
-    let originalStyleNames = getStyleNames(selectedStyles);
     let originalFamilyNames = getFamilyNames(selectedStyles);
     let originalFontWeights = getFontWeights(selectedStyles);
     let originalFontSizes = getFontSizes(selectedStyles);
@@ -82,9 +81,7 @@
     let values = {};
     values.selectedStyles = selectedStyles;
     values.styleMatch = styleMatch;
-    if (originalStyleNames !== styleName) {
-      values.styleName = styleName;
-    }
+    values.styleName = styleName;
     if (originalFamilyNames !== familyName) {
       values.familyName = familyName;
     }
@@ -161,10 +158,6 @@
     });
   }
 
-  function getStyleNames(selectedStyles) {
-    return [...new Set(selectedStyles.map(n => n.name))].join(", ");
-  }
-
   function getFamilyNames(selectedStyles) {
     return [...new Set(selectedStyles.map(n => n.fontName.family))].join(", ");
   }
@@ -187,7 +180,6 @@
 
   function setSelectedStyles(selected) {
     selectedStyles = selected;
-    styleName = getStyleNames(selected);
     familyName = getFamilyNames(selected);
     fontWeight = getFontWeights(selected);
     fontSize = getFontSizes(selected);
@@ -199,10 +191,6 @@
 <style lang="scss">
   /* Add additional global or scoped styles here */
 
-  .form-wrapper {
-    border: 1px solid var(--silver);
-    padding: var(--size-medium);
-  }
   fieldset {
     border: 0;
     padding: 0;
@@ -357,17 +345,17 @@
       </div>
 
       <Label>Name</Label>
-      <div class="flex flex-between space-x-2">
+      <div class="flex flex-row flex-between space-x-2">
         <Input
-          placeholder="Style Name"
-          class="ml-xxsmall mr-xxsmall"
-          name="name"
-          bind:value={styleName} />
-        <Input
-          placeholder="Match (optional)"
+          placeholder="Find"
           class="ml-xxsmall mr-xxsmall"
           name="match"
           bind:value={styleMatch} />
+        <Input
+          placeholder="Replace"
+          class="ml-xxsmall mr-xxsmall"
+          name="name"
+          bind:value={styleName} />
       </div>
       <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
         <Button {disabled} on:click={update}>Update styles</Button>
