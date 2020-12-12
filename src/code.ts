@@ -19,7 +19,7 @@ import {
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 710,
+  height: 720,
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this

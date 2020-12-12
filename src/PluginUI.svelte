@@ -133,6 +133,12 @@
     height: 100%;
   }
 
+  .gh-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
   .inner-wrapper {
     display: flex;
     flex-direction: column;
@@ -192,12 +198,18 @@
         class="ml-xxsmall mr-xxsmall flex justify-content-between
         align-items-center">
         <Type>
-          For suggestions or issues visit
-          <a href="https://github.com/six7/figma-batch-styler" target="_blank">
-            Github
+          Changelog/Documentation:
+          <a
+            href="https://sixseven.at/plugins/figma-batch-styler?ref=batch-styler-plugin"
+            style="text-decoration: underline;"
+            target="_blank">
+            sixseven.at
           </a>
         </Type>
-        <a href="https://github.com/six7/figma-batch-styler" target="_blank">
+        <a
+          class="gh-link"
+          href="https://github.com/six7/figma-batch-styler"
+          target="_blank">
           <IconButton iconName={Github} />
         </a>
       </div>
