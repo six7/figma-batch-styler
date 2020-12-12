@@ -34,6 +34,15 @@
 
   $: disabled = !selectedStyles.length;
 
+  function remove() {
+    sendToUI({
+      type: "remove",
+      values: {
+        selectedStyles
+      }
+    });
+  }
+
   function update() {
     let originalHue = getHue(selectedStyles);
     let originalSaturation = getSaturation(selectedStyles);
@@ -160,6 +169,10 @@
     flex-direction: row;
   }
 
+  .justify-between {
+    justify-content: space-between;
+  }
+
   :global(.hue-wrapper) {
     border-radius: 50px;
   }
@@ -241,8 +254,11 @@
           name="name"
           bind:value={styleName} />
       </div>
-      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
+      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall justify-between">
         <Button {disabled} on:click={update}>Update styles</Button>
+        <Button variant="secondary" {disabled} on:click={remove}>
+          Delete selected
+        </Button>
       </div>
     </fieldset>
   </form>

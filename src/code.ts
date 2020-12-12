@@ -19,7 +19,7 @@ import {
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 700,
+  height: 710,
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -254,6 +254,33 @@ function trackEvent(data) {
   });
 }
 
+async function removeStyles({ selectedStyles }) {
+  try {
+    let textStyles = figma.getLocalTextStyles();
+    let paintStyles = figma.getLocalPaintStyles();
+    const styles = [...textStyles, ...paintStyles];
+
+    selectedStyles.map((style) => {
+      const found = styles.find((s) => s.id === style.id);
+      if (found) {
+        found.remove();
+      }
+    });
+    figma.notify(`Successfully removed ${selectedStyles.length} styles`);
+    trackEvent([
+      {
+        event_type: "removed_style",
+        event_properties: { size: selectedStyles.length },
+      },
+    ]);
+  } catch (e) {
+    figma.notify("Encountered an error, full output in console");
+    console.error(e);
+    trackEvent([{ event_type: "error", message: e }]);
+  }
+  getStyles();
+}
+
 async function updateStyles({
   selectedStyles,
   styleName,
@@ -329,6 +356,10 @@ trackEvent([{ event_type: "launched_plugin" }]);
 figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
     updateStyles(msg);
+    return;
+  }
+  if (msg.type === "remove") {
+    removeStyles(msg);
     return;
   }
   if (msg.type === "refresh") {

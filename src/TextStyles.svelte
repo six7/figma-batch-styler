@@ -76,6 +76,15 @@
     fontWeight = [...new Set(newFontWeights.map(n => n.newWeight))].join(", ");
   }
 
+  function remove() {
+    sendToUI({
+      type: "remove",
+      values: {
+        selectedStyles
+      }
+    });
+  }
+
   function update() {
     let originalFamilyNames = getFamilyNames(selectedStyles);
     let originalFontWeights = getFontWeights(selectedStyles);
@@ -149,6 +158,10 @@
     border: 0;
     padding: 0;
     margin: 0;
+  }
+
+  .justify-between {
+    justify-content: space-between;
   }
 
   hr {
@@ -311,8 +324,11 @@
           name="name"
           bind:value={styleName} />
       </div>
-      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
+      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall flex justify-between">
         <Button {disabled} on:click={update}>Update styles</Button>
+        <Button variant="secondary" {disabled} on:click={remove}>
+          Delete selected
+        </Button>
       </div>
     </fieldset>
   </form>
