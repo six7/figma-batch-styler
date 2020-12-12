@@ -12,7 +12,7 @@
     Section,
     SelectMenu,
     Switch,
-    IconWarning,
+    IconWarning
   } from "figma-plugin-ds-svelte";
 
   export let styles = [];
@@ -53,52 +53,50 @@
       values.alpha = Number(alpha);
     }
     values.styleMatch = styleMatch;
-    if (styleName) {
-      values.styleName = styleName;
-    }
+    values.styleName = styleName;
 
     sendToUI({
       type: "update",
       values,
-      variant: "COLOR",
+      variant: "COLOR"
     });
   }
 
-  const handleInput = (event) => {
+  const handleInput = event => {
     const { h, s, l } = event.detail;
   };
 
   function getColors(styles) {
     let rgbValues = [
       ...new Set(
-        styles.map((n) => {
-          let paints = n.paints.filter((n) => n.type === "SOLID");
+        styles.map(n => {
+          let paints = n.paints.filter(n => n.type === "SOLID");
           if (!paints) return;
           return paints[0].color;
         })
-      ),
+      )
     ];
 
-    return rgbValues.map((c) => convertToHsl(c));
+    return rgbValues.map(c => convertToHsl(c));
   }
 
   function getHue(styles) {
     let hsl = getColors(styles);
-    return [...new Set(hsl.map((c) => c.h))].join(", ");
+    return [...new Set(hsl.map(c => c.h))].join(", ");
   }
 
   function getSaturation(styles) {
     let hsl = getColors(styles);
-    return [...new Set(hsl.map((c) => c.s))].join(", ");
+    return [...new Set(hsl.map(c => c.s))].join(", ");
   }
 
   function getLightness(styles) {
     let hsl = getColors(styles);
-    return [...new Set(hsl.map((c) => c.l))].join(", ");
+    return [...new Set(hsl.map(c => c.l))].join(", ");
   }
 
   function getAlpha(styles) {
-    return [...new Set(styles.map((c) => c.paints[0].opacity))].join(", ");
+    return [...new Set(styles.map(c => c.paints[0].opacity))].join(", ");
   }
 
   function convertToHsl(color) {
@@ -137,10 +135,6 @@
     display: flex;
   }
 
-  .flex-col {
-    flex-direction: column;
-  }
-
   .flex-row {
     flex-direction: row;
   }
@@ -162,7 +156,7 @@
   </div>
 
   <hr class="mt-xsmall mb-xsmall ml-xxsmall mr-xxsmall" />
-  <form on:submit={(e) => e.preventDefault()}>
+  <form on:submit={e => e.preventDefault()}>
     <fieldset {disabled}>
       <div class="ml-xxsmall mr-xxsmall mb-xxsmall mt-xsmall">
         <Hue
@@ -207,25 +201,17 @@
 
       <Label>Name</Label>
       <div class="flex flex-row flex-between space-x-2">
-        <div class="flex flex-col">
-          {#each selectedStyles as style, i}
-            <Label>{style.name}</Label>
-          {/each}
-        </div>
-        <div class="flex flex-col">
-          <Input
-            placeholder="Style Name"
-            class="ml-xxsmall mr-xxsmall"
-            name="name"
-            bind:value={styleName} />
-          <Input
-            placeholder="Match (optional)"
-            class="ml-xxsmall mr-xxsmall"
-            name="match"
-            bind:value={styleMatch} />
-        </div>
+        <Input
+          placeholder="Find"
+          class="ml-xxsmall mr-xxsmall"
+          name="match"
+          bind:value={styleMatch} />
+        <Input
+          placeholder="Replace"
+          class="ml-xxsmall mr-xxsmall"
+          name="name"
+          bind:value={styleName} />
       </div>
-
       <div class="mt-xsmall flex ml-xxsmall mr-xxsmall">
         <Button {disabled} on:click={update}>Update styles</Button>
       </div>
