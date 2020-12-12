@@ -1,11 +1,11 @@
 export function convertLetterSpacingToFigma(value) {
   let letterSpacing;
   value = value.toString();
-  const numbers = /^-?\d+(\.\d+)?$/;
+  const numbers = /^-?\d+(\.\d+)?(px)?$/;
   if (value.match(numbers)) {
     letterSpacing = {
       unit: "PIXELS",
-      value: Number(value),
+      value: Number(value.replace("px", "")),
     };
   } else if (
     value.trim().slice(-1) === "%" &&
