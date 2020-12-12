@@ -190,7 +190,7 @@ function getHslFromStyle(style) {
 
 function fillToLengthOfSelected(property, styles) {
   return new Array(styles.length)
-    .fill(property.split(",").map((i) => i.trim()))
+    .fill(String(property).split(",").map((i) => i.trim()))
     .flat()
     .slice(0, styles.length);
 }
