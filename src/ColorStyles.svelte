@@ -2,7 +2,7 @@
   import Selector from "./Selector.svelte";
   import Input from "./Input.svelte";
   import Hue from "svelte-color/Hue.svelte";
-  import { rgbToHsl } from "./color-helpers.js";
+  import { rgbToHsl, figmaRGBToHex } from "./color-helpers.js";
   import {
     Button,
     Icon,
@@ -26,6 +26,7 @@
     saturation = "",
     lightness = "",
     alpha = "",
+    hex = "",
     chrome,
     color,
     styleName = "",
@@ -38,19 +39,23 @@
     let originalSaturation = getSaturation(selectedStyles);
     let originalLightness = getLightness(selectedStyles);
     let originalAlpha = getAlpha(selectedStyles);
+    let originalHex = getHex(selectedStyles);
     let values = {};
     values.selectedStyles = selectedStyles;
     if (originalHue !== hue) {
-      values.hue = Number(hue);
+      values.hue = hue;
     }
     if (originalSaturation !== saturation) {
-      values.saturation = Number(saturation);
+      values.saturation = saturation;
     }
     if (originalLightness !== lightness) {
-      values.lightness = Number(lightness);
+      values.lightness = lightness;
     }
     if (originalAlpha !== alpha) {
-      values.alpha = Number(alpha);
+      values.alpha = alpha;
+    }
+    if (originalHex !== hex) {
+      values.hex = hex;
     }
     values.styleMatch = styleMatch;
     values.styleName = styleName;
@@ -67,7 +72,7 @@
   };
 
   function getColors(styles) {
-    let rgbValues = [
+    return [
       ...new Set(
         styles.map(n => {
           let paints = n.paints.filter(n => n.type === "SOLID");
@@ -76,22 +81,28 @@
         })
       )
     ];
+  }
 
-    return rgbValues.map(c => convertToHsl(c));
+  function getHSLValues(styles) {
+    return getColors(styles).map(c => convertToHsl(c));
+  }
+
+  function getHexValues(styles) {
+    return getColors(styles).map(c => convertToHex(c));
   }
 
   function getHue(styles) {
-    let hsl = getColors(styles);
+    let hsl = getHSLValues(styles);
     return [...new Set(hsl.map(c => c.h))].join(", ");
   }
 
   function getSaturation(styles) {
-    let hsl = getColors(styles);
+    let hsl = getHSLValues(styles);
     return [...new Set(hsl.map(c => c.s))].join(", ");
   }
 
   function getLightness(styles) {
-    let hsl = getColors(styles);
+    let hsl = getHSLValues(styles);
     return [...new Set(hsl.map(c => c.l))].join(", ");
   }
 
@@ -99,8 +110,12 @@
     return [...new Set(styles.map(c => c.paints[0].opacity))].join(", ");
   }
 
-  function convertToHsl(color) {
-    const { r, g, b } = color;
+  function getHex(styles) {
+    let hexValues = getHexValues(styles);
+    return [...new Set(hexValues)].join(", ");
+  }
+
+  function convertToHsl({ r, g, b }) {
     let rawHsl = rgbToHsl(r * 255, g * 255, b * 255);
     let [h, s, l] = rawHsl;
     h = Math.round(h * 360);
@@ -109,12 +124,18 @@
     return { h, s, l };
   }
 
+  function convertToHex({ r, g, b }) {
+    let hex = figmaRGBToHex({ r, g, b });
+    return hex;
+  }
+
   function setSelectedStyles(selected) {
     selectedStyles = selected;
     hue = getHue(selectedStyles);
     saturation = getSaturation(selectedStyles);
     lightness = getLightness(selectedStyles);
     alpha = getAlpha(selectedStyles);
+    hex = getHex(selectedStyles);
   }
 </script>
 
@@ -197,6 +218,14 @@
             name="alpha"
             bind:value={alpha} />
         </div>
+      </div>
+      <div class="flex-grow">
+        <Label>Hex</Label>
+        <Input
+          placeholder="Hex"
+          class="ml-xxsmall mr-xxsmall"
+          name="hue"
+          bind:value={hex} />
       </div>
 
       <Label>Name</Label>

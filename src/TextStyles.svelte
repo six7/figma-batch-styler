@@ -96,23 +96,13 @@
       values.fontWeight = fontWeight;
     }
     if (originalFontSizes !== fontSize) {
-      let fontSizeMappings = fontSize.split(",").map(l => l.trim());
-      let newFontSizes = fontSizeMappings.map(fs => Number(fs));
-      values.fontSize = newFontSizes;
+      values.fontSize = fontSize;
     }
     if (originalLineHeights !== lineHeight) {
-      let lineHeightMappings = lineHeight.split(",").map(l => l.trim());
-      let newLineHeights = lineHeightMappings.map(lh => {
-        return convertLineHeightToFigma(lh)
-      });
-      values.lineHeight = newLineHeights;
+      values.lineHeight = lineHeight;
     }
     if (originalLetterSpacings !== letterSpacing) {
-      let letterSpaceMappings = letterSpacing.split(",").map(l => l.trim());
-      let newLetterSpacings = letterSpaceMappings.map(ls => {
-        return convertLetterSpacingToFigma(ls);
-      });
-      values.letterSpacing = newLetterSpacings;
+      values.letterSpacing = letterSpacing;
     }
 
     sendToUI({
@@ -312,12 +302,12 @@
       <div class="flex flex-row flex-between space-x-2">
         <Input
           placeholder="Find"
-          class="ml-xxsmall mr-xxsmall"
+          class="ml-xxsmall mr-xxsmall flex-grow"
           name="match"
           bind:value={styleMatch} />
         <Input
           placeholder="Replace"
-          class="ml-xxsmall mr-xxsmall"
+          class="ml-xxsmall mr-xxsmall flex-grow"
           name="name"
           bind:value={styleName} />
       </div>
