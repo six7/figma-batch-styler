@@ -198,12 +198,12 @@
         class="ml-xxsmall mr-xxsmall flex justify-content-between
         align-items-center">
         <Type>
-          Changelog/Documentation:
+          More information at
           <a
-            href="https://sixseven.at/plugins/figma-batch-styler?ref=batch-styler-plugin"
+            href="https://jansix.at/resources/figma-batch-styler?ref=batch-styler-plugin"
             style="text-decoration: underline;"
             target="_blank">
-            sixseven.at
+            jansix.at
           </a>
         </Type>
         <a
