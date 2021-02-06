@@ -35,6 +35,7 @@
     familyName,
     styleName = "",
     styleMatch,
+    description = "",
     fontSize,
     lineHeight,
     letterSpacing,
@@ -95,6 +96,8 @@
     values.selectedStyles = selectedStyles;
     values.styleMatch = styleMatch;
     values.styleName = styleName;
+    values.description = description;
+
     if (originalFamilyNames !== familyName) {
       values.familyName = familyName;
     }
@@ -148,6 +151,7 @@
     fontSize = getFontSizes(selected);
     lineHeight = getLineHeights(selected);
     letterSpacing = getLetterSpacings(selected);
+    description = selected[0].description;
   }
 </script>
 
@@ -324,6 +328,14 @@
           name="name"
           bind:value={styleName} />
       </div>
+
+      <Label>Description</Label>
+      <Input
+        placeholder="Description"
+        class="ml-xxsmall mr-xxsmall"
+        name="description"
+        bind:value={description}
+      />
       <div class="mt-xsmall flex ml-xxsmall mr-xxsmall flex justify-between">
         <Button {disabled} on:click={update}>Update styles</Button>
         <Button variant="secondary" {disabled} on:click={remove}>

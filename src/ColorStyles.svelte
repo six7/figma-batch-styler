@@ -12,7 +12,7 @@
     Section,
     SelectMenu,
     Switch,
-    IconWarning
+    IconWarning,
   } from "figma-plugin-ds-svelte";
 
   export let styles = [];
@@ -30,6 +30,7 @@
     chrome,
     color,
     styleName = "",
+    description = "",
     styleMatch;
 
   $: disabled = !selectedStyles.length;
@@ -38,8 +39,8 @@
     sendToUI({
       type: "remove",
       values: {
-        selectedStyles
-      }
+        selectedStyles,
+      },
     });
   }
 
@@ -66,57 +67,58 @@
     if (originalHex !== hex) {
       values.hex = hex;
     }
+    values.description = description;
     values.styleMatch = styleMatch;
     values.styleName = styleName;
 
     sendToUI({
       type: "update",
       values,
-      variant: "COLOR"
+      variant: "COLOR",
     });
   }
 
-  const handleInput = event => {
+  const handleInput = (event) => {
     const { h, s, l } = event.detail;
   };
 
   function getColors(styles) {
     return [
       ...new Set(
-        styles.map(n => {
-          let paints = n.paints.filter(n => n.type === "SOLID");
+        styles.map((n) => {
+          let paints = n.paints.filter((n) => n.type === "SOLID");
           if (!paints) return;
           return paints[0].color;
         })
-      )
+      ),
     ];
   }
 
   function getHSLValues(styles) {
-    return getColors(styles).map(c => convertToHsl(c));
+    return getColors(styles).map((c) => convertToHsl(c));
   }
 
   function getHexValues(styles) {
-    return getColors(styles).map(c => convertToHex(c));
+    return getColors(styles).map((c) => convertToHex(c));
   }
 
   function getHue(styles) {
     let hsl = getHSLValues(styles);
-    return [...new Set(hsl.map(c => c.h))].join(", ");
+    return [...new Set(hsl.map((c) => c.h))].join(", ");
   }
 
   function getSaturation(styles) {
     let hsl = getHSLValues(styles);
-    return [...new Set(hsl.map(c => c.s))].join(", ");
+    return [...new Set(hsl.map((c) => c.s))].join(", ");
   }
 
   function getLightness(styles) {
     let hsl = getHSLValues(styles);
-    return [...new Set(hsl.map(c => c.l))].join(", ");
+    return [...new Set(hsl.map((c) => c.l))].join(", ");
   }
 
   function getAlpha(styles) {
-    return [...new Set(styles.map(c => c.paints[0].opacity))].join(", ");
+    return [...new Set(styles.map((c) => c.paints[0].opacity))].join(", ");
   }
 
   function getHex(styles) {
@@ -145,8 +147,104 @@
     lightness = getLightness(selectedStyles);
     alpha = getAlpha(selectedStyles);
     hex = getHex(selectedStyles);
+    description = selected[0].description;
   }
 </script>
+
+<div>
+  <div class="styles-wrapper">
+    <Selector type="Color" {styles} {setSelectedStyles} {sendToUI} />
+  </div>
+
+  <hr class="mt-xsmall mb-xsmall ml-xxsmall mr-xxsmall" />
+  <form on:submit={(e) => e.preventDefault()}>
+    <fieldset {disabled}>
+      <div class="ml-xxsmall mr-xxsmall mb-xxsmall mt-xsmall">
+        <Hue
+          class="hue-wrapper {disabled ? 'disabled' : ''}"
+          bind:h={hue}
+          on:input={handleInput}
+        />
+      </div>
+      <div class="flex justify-content-between">
+        <div class="flex-grow">
+          <Label>Hue</Label>
+          <Input
+            placeholder="Hue"
+            class="ml-xxsmall mr-xxsmall"
+            name="hue"
+            bind:value={hue}
+          />
+        </div>
+        <div class="flex-grow">
+          <Label>Saturation</Label>
+          <Input
+            placeholder="Saturation"
+            class="ml-xxsmall mr-xxsmall"
+            name="saturation"
+            bind:value={saturation}
+          />
+        </div>
+        <div class="flex-grow">
+          <Label>Lightness</Label>
+          <Input
+            placeholder="Lightness"
+            class="ml-xxsmall mr-xxsmall"
+            name="lightness"
+            bind:value={lightness}
+          />
+        </div>
+        <div class="flex-grow">
+          <Label>Alpha</Label>
+          <Input
+            placeholder="Alpha"
+            class="ml-xxsmall mr-xxsmall"
+            name="alpha"
+            bind:value={alpha}
+          />
+        </div>
+      </div>
+      <div class="flex-grow">
+        <Label>Hex</Label>
+        <Input
+          placeholder="Hex"
+          class="ml-xxsmall mr-xxsmall"
+          name="hue"
+          bind:value={hex}
+        />
+      </div>
+
+      <Label>Name</Label>
+      <div class="flex flex-row flex-between space-x-2">
+        <Input
+          placeholder="Find"
+          class="ml-xxsmall mr-xxsmall"
+          name="match"
+          bind:value={styleMatch}
+        />
+        <Input
+          placeholder="Replace"
+          class="ml-xxsmall mr-xxsmall"
+          name="name"
+          bind:value={styleName}
+        />
+      </div>
+      <Label>Description</Label>
+      <Input
+        placeholder="Description"
+        class="ml-xxsmall mr-xxsmall"
+        name="description"
+        bind:value={description}
+      />
+      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall justify-between">
+        <Button {disabled} on:click={update}>Update styles</Button>
+        <Button variant="secondary" {disabled} on:click={remove}>
+          Delete selected
+        </Button>
+      </div>
+    </fieldset>
+  </form>
+</div>
 
 <style lang="scss">
   fieldset {
@@ -183,83 +281,3 @@
     pointer-events: none;
   }
 </style>
-
-<div>
-  <div class="styles-wrapper">
-    <Selector type="Color" {styles} {setSelectedStyles} {sendToUI} />
-  </div>
-
-  <hr class="mt-xsmall mb-xsmall ml-xxsmall mr-xxsmall" />
-  <form on:submit={e => e.preventDefault()}>
-    <fieldset {disabled}>
-      <div class="ml-xxsmall mr-xxsmall mb-xxsmall mt-xsmall">
-        <Hue
-          class="hue-wrapper {disabled ? 'disabled' : ''}"
-          bind:h={hue}
-          on:input={handleInput} />
-      </div>
-      <div class="flex justify-content-between">
-        <div class="flex-grow">
-          <Label>Hue</Label>
-          <Input
-            placeholder="Hue"
-            class="ml-xxsmall mr-xxsmall"
-            name="hue"
-            bind:value={hue} />
-        </div>
-        <div class="flex-grow">
-          <Label>Saturation</Label>
-          <Input
-            placeholder="Saturation"
-            class="ml-xxsmall mr-xxsmall"
-            name="saturation"
-            bind:value={saturation} />
-        </div>
-        <div class="flex-grow">
-          <Label>Lightness</Label>
-          <Input
-            placeholder="Lightness"
-            class="ml-xxsmall mr-xxsmall"
-            name="lightness"
-            bind:value={lightness} />
-        </div>
-        <div class="flex-grow">
-          <Label>Alpha</Label>
-          <Input
-            placeholder="Alpha"
-            class="ml-xxsmall mr-xxsmall"
-            name="alpha"
-            bind:value={alpha} />
-        </div>
-      </div>
-      <div class="flex-grow">
-        <Label>Hex</Label>
-        <Input
-          placeholder="Hex"
-          class="ml-xxsmall mr-xxsmall"
-          name="hue"
-          bind:value={hex} />
-      </div>
-
-      <Label>Name</Label>
-      <div class="flex flex-row flex-between space-x-2">
-        <Input
-          placeholder="Find"
-          class="ml-xxsmall mr-xxsmall"
-          name="match"
-          bind:value={styleMatch} />
-        <Input
-          placeholder="Replace"
-          class="ml-xxsmall mr-xxsmall"
-          name="name"
-          bind:value={styleName} />
-      </div>
-      <div class="mt-xsmall flex ml-xxsmall mr-xxsmall justify-between">
-        <Button {disabled} on:click={update}>Update styles</Button>
-        <Button variant="secondary" {disabled} on:click={remove}>
-          Delete selected
-        </Button>
-      </div>
-    </fieldset>
-  </form>
-</div>

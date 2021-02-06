@@ -19,7 +19,7 @@ import {
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
   width: 400,
-  height: 720,
+  height: 780,
 });
 
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -36,13 +36,13 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
           g: g * 255,
           b: b * 255,
         };
-        const { name, paints, id } = s;
-        return { name, paints, id, color };
+        const { name, description, paints, id } = s;
+        return { name, description, paints, id, color };
       }
     })
     .filter((n) => n);
   let textStyles = figmaTextStyles.map((s) => {
-    const { name, fontName, fontSize, id } = s;
+    const { name, description, fontName, fontSize, id } = s;
     let lineHeight;
     if (s.lineHeight.unit === "AUTO") {
       lineHeight = "AUTO";
@@ -59,7 +59,7 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
     } else {
       letterSpacing = Math.round(s.letterSpacing.value * 100) / 100;
     }
-    return { name, fontName, fontSize, lineHeight, letterSpacing, id };
+    return { name, description, fontName, fontSize, lineHeight, letterSpacing, id };
   });
 
   let availableFonts = await figma.listAvailableFontsAsync();
@@ -87,6 +87,7 @@ function updateTextStyles({
   selectedStyles,
   styleName,
   styleMatch,
+  description,
   familyName,
   fontWeight,
   fontSize,
@@ -140,6 +141,9 @@ function updateTextStyles({
       hit.name = hit.name.replace(styleMatch, styleName);
     } else if (styleName) {
       hit.name = styleName;
+    }
+    if(description !== null) {
+      hit.description = description
     }
     hit.fontName = {
       family,
@@ -203,6 +207,7 @@ function updateColorStyles({
   selectedStyles,
   styleName,
   styleMatch,
+  description,
   hue,
   saturation,
   lightness,
@@ -246,6 +251,9 @@ function updateColorStyles({
       hit.name = hit.name.replace(styleMatch, styleName);
     } else if (styleName) {
       hit.name = styleName;
+    }
+    if(description !== null) {
+      hit.description = description
     }
     return hit;
   });
@@ -291,6 +299,7 @@ async function updateStyles({
   selectedStyles,
   styleName,
   styleMatch,
+  description,
   hue,
   saturation,
   lightness,
@@ -312,6 +321,7 @@ async function updateStyles({
         selectedStyles,
         styleName,
         styleMatch,
+        description,
         hue,
         saturation,
         lightness,
@@ -332,6 +342,7 @@ async function updateStyles({
         selectedStyles,
         styleName,
         styleMatch,
+        description,
         familyName,
         fontWeight,
         fontSize,
