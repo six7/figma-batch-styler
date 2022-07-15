@@ -21,7 +21,7 @@
     "rollup-plugin-terser": "^5.1.2",
     "rollup-plugin-typescript": "^1.0.1",
     "simple-svelte-autocomplete": "^1.1.2",
-    "svelte": "^3.0.0",
+    "svelte": "^3.49.0",
     "tslib": "^1.10.0",
     "typescript": "^3.7.4"
   },
