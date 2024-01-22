@@ -43,3 +43,28 @@ export function convertLineHeightToFigma(value) {
   }
   return lineHeight;
 }
+
+export function convertParagraphSpacingToFigma(value) { // P3d1c
+  let paragraphSpacing;
+  value = value.toString();
+  var numbers = /^\d+(\.\d+)?$/;
+  if (value.match(numbers)) {
+    paragraphSpacing = {
+      unit: "PIXELS",
+      value: Number(value),
+    };
+  } else if (
+    value.trim().slice(-1) === "%" &&
+    value.trim().slice(0, -1).match(numbers)
+  ) {
+    paragraphSpacing = {
+      unit: "PERCENT",
+      value: Number(value.slice(0, -1)),
+    };
+  } else {
+    paragraphSpacing = {
+      unit: "AUTO",
+    };
+  }
+  return paragraphSpacing;
+}

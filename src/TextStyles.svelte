@@ -6,7 +6,8 @@
   import MissingWeightsDialog from "./MissingWeightsDialog.svelte";
   import {
     convertLetterSpacingToFigma,
-    convertLineHeightToFigma
+    convertLineHeightToFigma,
+    convertParagraphSpacingToFigma // P3d1c
   } from "./helpers.ts";
 
   import {
@@ -39,6 +40,7 @@
     fontSize,
     lineHeight,
     letterSpacing,
+    paragraphSpacing, // P8594
     weightsDialogVisible = false,
     loading = true;
 
@@ -92,6 +94,7 @@
     let originalFontSizes = getFontSizes(selectedStyles);
     let originalLineHeights = getLineHeights(selectedStyles);
     let originalLetterSpacings = getLetterSpacings(selectedStyles);
+    let originalParagraphSpacings = getParagraphSpacings(selectedStyles); // Pfe7e
     let values = {};
     values.selectedStyles = selectedStyles;
     values.styleMatch = styleMatch;
@@ -115,6 +118,9 @@
     }
     if (originalLetterSpacings !== letterSpacing) {
       values.letterSpacing = letterSpacing;
+    }
+    if (originalParagraphSpacings !== paragraphSpacing) { // P7ee5
+      values.paragraphSpacing = paragraphSpacing; // P490d
     }
 
     sendToUI({
@@ -144,6 +150,10 @@
     return [...new Set(selectedStyles.map(n => n.letterSpacing))].join(", ");
   }
 
+  function getParagraphSpacings(selectedStyles) { // Pfe7e
+    return [...new Set(selectedStyles.map(n => n.paragraphSpacing))].join(", ");
+  }
+
   function setSelectedStyles(selected) {
     selectedStyles = selected;
     familyName = getFamilyNames(selected);
@@ -151,6 +161,7 @@
     fontSize = getFontSizes(selected);
     lineHeight = getLineHeights(selected);
     letterSpacing = getLetterSpacings(selected);
+    paragraphSpacing = getParagraphSpacings(selected); // Pf62d
     description = selected[0].description;
   }
 </script>
@@ -313,6 +324,14 @@
             name="letterspacing"
             bind:value={letterSpacing} />
         </div>
+      </div>
+      <div class="flex-grow"> <!-- P495c -->
+        <Label>Paragraph Spacing</Label> <!-- P1bcb -->
+        <Input
+          placeholder="% or px" <!-- P3dfc -->
+          class="ml-xxsmall mr-xxsmall"
+          name="paragraphspacing"
+          bind:value={paragraphSpacing} /> <!-- P495c -->
       </div>
 
       <Label>Name</Label>
