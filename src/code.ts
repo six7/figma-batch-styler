@@ -7,6 +7,7 @@ import {
 import {
   convertLetterSpacingToFigma,
   convertLineHeightToFigma,
+  convertParagraphSpacingToFigma // Pa98a
 } from "./helpers";
 
 // This plugin will open a modal to prompt the user to enter a number, and
@@ -59,7 +60,14 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
     } else {
       letterSpacing = Math.round(s.letterSpacing.value * 100) / 100;
     }
-    return { name, description, fontName, fontSize, lineHeight, letterSpacing, id };
+    let paragraphSpacing; // Pa98a
+    if (s.paragraphSpacing.unit === "PERCENT") {
+      let value = Math.round(s.paragraphSpacing.value * 100) / 100;
+      paragraphSpacing = `${value}%`;
+    } else {
+      paragraphSpacing = Math.round(s.paragraphSpacing.value * 100) / 100;
+    }
+    return { name, description, fontName, fontSize, lineHeight, letterSpacing, paragraphSpacing, id }; // Pa98a
   });
 
   let availableFonts = await figma.listAvailableFontsAsync();
@@ -93,6 +101,7 @@ function updateTextStyles({
   fontSize,
   lineHeight,
   letterSpacing,
+  paragraphSpacing, // Pa98a
   fontMappings,
 }) {
   let localStyles = figma.getLocalTextStyles();
@@ -100,6 +109,7 @@ function updateTextStyles({
   return selectedStyles.map(async (selectedStyle, idx) => {
     let newLineHeight;
     let newLetterSpacing;
+    let newParagraphSpacing; // P5fc3
     let newFontSize;
     if (lineHeight) {
       newLineHeight = convertLineHeightToFigma(
@@ -111,7 +121,11 @@ function updateTextStyles({
         fillToLengthOfSelected(letterSpacing, selectedStyles)[idx]
       );
     }
-
+    if (paragraphSpacing) { // P5fc3
+      newParagraphSpacing = convertParagraphSpacingToFigma(
+        fillToLengthOfSelected(paragraphSpacing, selectedStyles)[idx]
+      );
+    }
     if (fontSize) {
       newFontSize = Number(
         fillToLengthOfSelected(fontSize, selectedStyles)[idx]
@@ -134,6 +148,9 @@ function updateTextStyles({
     let ls = newLetterSpacing
       ? newLetterSpacing
       : convertLetterSpacingToFigma(selectedStyle.letterSpacing);
+    let ps = newParagraphSpacing // P5fc3
+      ? newParagraphSpacing
+      : convertParagraphSpacingToFigma(selectedStyle.paragraphSpacing); // P5fc3
     let hit = localStyles.find((s) => s.id === selectedStyle.id);
 
     await figma.loadFontAsync({ family, style });
@@ -155,6 +172,9 @@ function updateTextStyles({
     };
     hit.letterSpacing = {
       ...ls,
+    };
+    hit.paragraphSpacing = { // P7de7
+      ...ps
     };
     return hit;
   });
@@ -264,110 +284,6 @@ function trackEvent(data) {
     type: "trackEvent",
     data,
   });
-}
-
-async function removeStyles({ selectedStyles }) {
-  try {
-    let textStyles = figma.getLocalTextStyles();
-    let paintStyles = figma.getLocalPaintStyles();
-    const styles = [...textStyles, ...paintStyles];
-
-    selectedStyles.map((style) => {
-      const found = styles.find((s) => s.id === style.id);
-      if (found) {
-        found.remove();
-      }
-    });
-    figma.notify(`Successfully removed ${selectedStyles.length} styles`);
-    trackEvent([
-      {
-        event_type: "removed_style",
-        event_properties: { size: selectedStyles.length },
-      },
-    ]);
-  } catch (e) {
-    figma.notify("Encountered an error, full output in console");
-    console.error(e);
-    trackEvent([
-      { event_type: "error", event_properties: { message: JSON.stringify(e) } },
-    ]);
-  }
-  getStyles();
-}
-
-async function updateStyles({
-  selectedStyles,
-  styleName,
-  styleMatch,
-  description,
-  hue,
-  saturation,
-  lightness,
-  alpha,
-  hex,
-  familyName,
-  fontWeight,
-  fontSize,
-  lineHeight,
-  letterSpacing,
-  fontMappings,
-  variant,
-}) {
-  let styleChanges;
-
-  try {
-    if (variant === "COLOR") {
-      styleChanges = updateColorStyles({
-        selectedStyles,
-        styleName,
-        styleMatch,
-        description,
-        hue,
-        saturation,
-        lightness,
-        alpha,
-        hex,
-      });
-      figma.notify(
-        `Successfully updated ${selectedStyles.length} color styles`
-      );
-      trackEvent([
-        {
-          event_type: "changed_color_style",
-          event_properties: { size: selectedStyles.length },
-        },
-      ]);
-    } else {
-      styleChanges = updateTextStyles({
-        selectedStyles,
-        styleName,
-        styleMatch,
-        description,
-        familyName,
-        fontWeight,
-        fontSize,
-        lineHeight,
-        letterSpacing,
-        fontMappings,
-      });
-      figma.notify(`Successfully updated ${selectedStyles.length} text styles`);
-      trackEvent([
-        {
-          event_type: "changed_text_style",
-          event_properties: { size: selectedStyles.length },
-        },
-      ]);
-    }
-
-    await Promise.all(styleChanges);
-  } catch (e) {
-    figma.notify("Encountered an error, full output in console");
-    console.error(e);
-    trackEvent([
-      { event_type: "error", event_properties: { message: JSON.stringify(e) } },
-    ]);
-  }
-  getStyles();
 }
 
 trackEvent([{ event_type: "launched_plugin" }]);
