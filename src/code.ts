@@ -22,6 +22,13 @@ figma.showUI(__html__, {
   height: 780,
 });
 
+// Add event listener for resizing the UI
+figma.ui.onmessage = (msg) => {
+  if (msg.type === "resize") {
+    figma.ui.resize(msg.width, msg.height);
+  }
+};
+
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.

@@ -49,6 +49,30 @@
       ? `--background-color: rgb(${Object.values(color).join(", ")}`
       : "";
   }
+
+  let isResizing = false;
+  let startY;
+  let startHeight;
+
+  function handleMouseDown(event) {
+    isResizing = true;
+    startY = event.clientY;
+    startHeight = parseInt(document.defaultView.getComputedStyle(panel).height, 10);
+    document.documentElement.addEventListener('mousemove', handleMouseMove);
+    document.documentElement.addEventListener('mouseup', handleMouseUp);
+  }
+
+  function handleMouseMove(event) {
+    if (!isResizing) return;
+    const newHeight = startHeight + event.clientY - startY;
+    panel.style.height = `${newHeight}px`;
+  }
+
+  function handleMouseUp() {
+    isResizing = false;
+    document.documentElement.removeEventListener('mousemove', handleMouseMove);
+    document.documentElement.removeEventListener('mouseup', handleMouseUp);
+  }
 </script>
 
 <style lang="scss">
@@ -102,9 +126,16 @@
     height: 8px;
     background: var(--background-color);
   }
+
+  .resize-handle {
+    width: 100%;
+    height: 10px;
+    background: var(--grey);
+    cursor: ns-resize;
+  }
 </style>
 
-<div class="selector-wrapper">
+<div class="selector-wrapper" bind:this={panel}>
   <div class="flex justify-content-between align-items-center">
     {#if styleFilter}
       <Type>
@@ -143,4 +174,5 @@
   {:else}
     <Label>No {type} Styles found.</Label>
   {/if}
+  <div class="resize-handle" on:mousedown={handleMouseDown}></div>
 </div>
