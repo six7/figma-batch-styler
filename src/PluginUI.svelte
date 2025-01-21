@@ -9,7 +9,7 @@
   import Github from "./github.svg";
 
   import {
-    Button,
+    Bxxxutton,
     Icon,
     IconButton,
     Label,
@@ -96,6 +96,33 @@
       trackData(event.data.pluginMessage.data);
     }
   };
+
+  let isResizing = false;
+  let startX, startY, startWidth, startHeight;
+
+  function handleMouseDown(event) {
+    isResizing = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    startWidth = parseInt(document.defaultView.getComputedStyle(panel).width, 10);
+    startHeight = parseInt(document.defaultView.getComputedStyle(panel).height, 10);
+    document.documentElement.addEventListener('mousemove', handleMouseMove);
+    document.documentElement.addEventListener('mouseup', handleMouseUp);
+  }
+
+  function handleMouseMove(event) {
+    if (!isResizing) return;
+    const newWidth = startWidth + event.clientX - startX;
+    const newHeight = startHeight + event.clientY - startY;
+    panel.style.width = `${newWidth}px`;
+    panel.style.height = `${newHeight}px`;
+  }
+
+  function handleMouseUp() {
+    isResizing = false;
+    document.documentElement.removeEventListener('mousemove', handleMouseMove);
+    document.documentElement.removeEventListener('mouseup', handleMouseUp);
+  }
 </script>
 
 <style lang="scss">
@@ -155,9 +182,16 @@
     border-radius: 9px;
     border: 2px solid white;
   }
+
+  .resize-handle {
+    width: 100%;
+    height: 10px;
+    background: var(--grey);
+    cursor: ns-resize;
+  }
 </style>
 
-<div class="outer-wrapper">
+<div class="outer-wrapper" bind:this={panel}>
   <div class="flex justify-content-between">
     <button
       class="tab-button {visible === 'text' ? 'tab-button-active' : ''}"
@@ -215,4 +249,5 @@
       </div>
     {/if}
   </div>
+  <div class="resize-handle" on:mousedown={handleMouseDown}></div>
 </div>
