@@ -9,7 +9,7 @@
   import Github from "./github.svg";
 
   import {
-    Button,
+    Bxxxutton,
     Icon,
     IconButton,
     Label,
