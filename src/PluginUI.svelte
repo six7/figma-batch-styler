@@ -25,6 +25,17 @@
   let availableFamilies = [];
   let loading = true;
   let visible = "text";
+  let isResizing = false;
+  let initialWidth = 400;
+  let initialHeight = 780;
+  let currentWidth = initialWidth;
+  let currentHeight = initialHeight;
+  
+  // Minimum and maximum size constraints
+  const MIN_WIDTH = 300;
+  const MIN_HEIGHT = 400;
+  const MAX_WIDTH = 800;
+  const MAX_HEIGHT = 1000;
 
   async function trackData(receivedEvents = []) {
     let events = receivedEvents.map(e => {
@@ -96,9 +107,73 @@
       trackData(event.data.pluginMessage.data);
     }
   };
+  
+  function startResize(event) {
+    isResizing = true;
+    initialWidth = currentWidth;
+    initialHeight = currentHeight;
+    
+    // Add event listeners for mouse movement and mouse up
+    window.addEventListener('mousemove', handleResize);
+    window.addEventListener('mouseup', stopResize);
+    
+    // Prevent default behavior to avoid text selection during resize
+    event.preventDefault();
+  }
+  
+  function handleResize(event) {
+    if (!isResizing) return;
+    
+    // Calculate new width and height based on mouse movement
+    const newWidth = Math.min(Math.max(initialWidth + event.movementX, MIN_WIDTH), MAX_WIDTH);
+    const newHeight = Math.min(Math.max(initialHeight + event.movementY, MIN_HEIGHT), MAX_HEIGHT);
+    
+    // Update current dimensions
+    currentWidth = newWidth;
+    currentHeight = newHeight;
+    
+    // Send resize message to the plugin
+    parent.postMessage({
+      pluginMessage: {
+        type: 'resize',
+        width: newWidth,
+        height: newHeight
+      }
+    }, '*');
+  }
+  
+  function stopResize() {
+    isResizing = false;
+    
+    // Remove event listeners
+    window.removeEventListener('mousemove', handleResize);
+    window.removeEventListener('mouseup', stopResize);
+  }
 </script>
 
 <style lang="scss">
+  /* Add additional global or scoped styles here */
+  
+  .resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    cursor: nwse-resize;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  .resize-handle-icon {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--black3);
+    border-bottom: 2px solid var(--black3);
+  }
+
   .tab-button {
     background: var(--selection-a);
     border-bottom: 1px solid var(--selection-b);
@@ -214,5 +289,8 @@
         </a>
       </div>
     {/if}
+  </div>
+  <div class="resize-handle" on:mousedown={startResize}>
+    <div class="resize-handle-icon"></div>
   </div>
 </div>

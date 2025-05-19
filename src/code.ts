@@ -386,6 +386,11 @@ figma.ui.onmessage = (msg) => {
 
     return;
   }
+  
+  if (msg.type === "resize") {
+    figma.ui.resize(msg.width, msg.height);
+    return;
+  }
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.
