@@ -3,6 +3,7 @@
   import { onMount } from "svelte";
   import TextStyles from "./TextStyles.svelte";
   import ColorStyles from "./ColorStyles.svelte";
+  import Variables from "./Variables.svelte";
   import NoneFound from "./NoneFound.svelte";
   import Loading from "./Loading.svelte";
   import MissingWeightsDialog from "./MissingWeightsDialog.svelte";
@@ -22,6 +23,8 @@
 
   let textStyles = [];
   let colorStyles = [];
+  let variables = [];
+  let collections = [];
   let availableFamilies = [];
   let loading = true;
   let visible = "text";
@@ -89,6 +92,14 @@
       availableFamilies = event.data.pluginMessage.availableFonts;
       if (!textStyles.length && colorStyles.length) {
         visible = "color";
+      }
+      loading = false;
+    }
+    if (event.data.pluginMessage.type === "postVariables") {
+      variables = event.data.pluginMessage.variables;
+      collections = event.data.pluginMessage.collections;
+      if (!textStyles.length && !colorStyles.length && variables.length) {
+        visible = "variables";
       }
       loading = false;
     }
@@ -171,12 +182,18 @@
       on:click={setVisible}>
       Color
     </button>
+    <button
+      class="tab-button {visible === 'variables' ? 'tab-button-active' : ''}"
+      name="variables"
+      on:click={setVisible}>
+      Variables
+    </button>
   </div>
   <div class="p-xxsmall inner-wrapper">
     {#if loading}
       <Loading />
     {:else}
-      {#if textStyles.length || colorStyles.length}
+      {#if textStyles.length || colorStyles.length || variables.length}
         {#if visible === 'text'}
           {#if textStyles.length}
             <TextStyles {sendToUI} styles={textStyles} {availableFamilies} />
@@ -191,8 +208,15 @@
             <NoneFound>No Color Styles found</NoneFound>
           {/if}
         {/if}
+        {#if visible === 'variables'}
+          {#if variables.length}
+            <Variables {sendToUI} {variables} {collections} />
+          {:else}
+            <NoneFound>No Variables found</NoneFound>
+          {/if}
+        {/if}
       {:else}
-        <NoneFound>No Styles found</NoneFound>
+        <NoneFound>No Styles or Variables found</NoneFound>
       {/if}
       <div
         class="ml-xxsmall mr-xxsmall flex justify-content-between

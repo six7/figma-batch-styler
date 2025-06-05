@@ -1,3 +1,5 @@
+/// <reference path="./figma-variables.d.ts" />
+
 import {
   hslToRgb,
   rgbToHsl,
@@ -8,6 +10,9 @@ import {
   convertLetterSpacingToFigma,
   convertLineHeightToFigma,
 } from "./helpers";
+
+// Type assertion to access variables API
+const figmaWithVariables = figma as any;
 
 // This plugin will open a modal to prompt the user to enter a number, and
 // it will then create that many rectangles on the screen.
@@ -72,6 +77,66 @@ async function sendStyles({ figmaTextStyles = [], figmaColorStyles = [] }) {
   trackEvent([{ event_type: "received_styles" }]);
 }
 
+async function sendVariables() {
+  try {
+    const collections = await figmaWithVariables.variables.getLocalVariableCollectionsAsync();
+    const variables = await figmaWithVariables.variables.getLocalVariablesAsync();
+    
+    // Process variables to include their values for each mode
+    const processedVariables = await Promise.all(
+      variables.map(async (variable) => {
+        const collection = collections.find(c => c.id === variable.variableCollectionId);
+        const modes = collection ? collection.modes : [];
+        
+        const valuesByMode = {};
+        for (const mode of modes) {
+          try {
+            valuesByMode[mode.modeId] = {
+              modeName: mode.name,
+              value: variable.valuesByMode[mode.modeId]
+            };
+          } catch (e) {
+            console.error(`Error getting value for mode ${mode.modeId}:`, e);
+          }
+        }
+        
+        return {
+          id: variable.id,
+          name: variable.name,
+          description: variable.description || '',
+          resolvedType: variable.resolvedType,
+          collectionId: variable.variableCollectionId,
+          collectionName: collection?.name || 'Unknown Collection',
+          valuesByMode,
+          scopes: variable.scopes || []
+        };
+      })
+    );
+    
+    const processedCollections = collections.map(collection => ({
+      id: collection.id,
+      name: collection.name,
+      modes: collection.modes,
+      defaultModeId: collection.defaultModeId
+    }));
+    
+    figma.ui.postMessage({
+      type: "postVariables",
+      variables: processedVariables,
+      collections: processedCollections
+    });
+    
+    trackEvent([{ event_type: "received_variables" }]);
+  } catch (error) {
+    console.error("Error fetching variables:", error);
+    figma.ui.postMessage({
+      type: "postVariables",
+      variables: [],
+      collections: []
+    });
+  }
+}
+
 function getStyles() {
   const figmaTextStyles = figma.getLocalTextStyles();
   const figmaColorStyles = figma.getLocalPaintStyles();
@@ -80,6 +145,7 @@ function getStyles() {
   } else {
     sendStyles({});
   }
+  sendVariables(); // Also send variables
   return;
 }
 
@@ -370,15 +436,110 @@ async function updateStyles({
   getStyles();
 }
 
+async function updateVariables({
+  selectedVariables,
+  variableName,
+  variableMatch,
+  description,
+  newValues // Object with modeId as key and new value as value
+}) {
+  try {
+    const updatedCount = await Promise.all(
+      selectedVariables.map(async (selectedVariable) => {
+        const variable = await figmaWithVariables.variables.getVariableByIdAsync(selectedVariable.id);
+        if (!variable) return;
+        
+        // Update name if provided
+        if (variableMatch !== null && variableName !== undefined) {
+          variable.name = variable.name.replace(variableMatch, variableName);
+        } else if (variableName) {
+          variable.name = variableName;
+        }
+        
+        // Update description if provided
+        if (description !== null) {
+          variable.description = description;
+        }
+        
+        // Update values for specified modes
+        if (newValues) {
+          for (const [modeId, value] of Object.entries(newValues)) {
+            try {
+              variable.setValueForMode(modeId, value);
+            } catch (e) {
+              console.error(`Error setting value for mode ${modeId}:`, e);
+            }
+          }
+        }
+        
+        return variable;
+      })
+    );
+    
+    figma.notify(`Successfully updated ${selectedVariables.length} variables`);
+    trackEvent([
+      {
+        event_type: "changed_variables",
+        event_properties: { size: selectedVariables.length }
+      }
+    ]);
+  } catch (e) {
+    figma.notify("Encountered an error, full output in console");
+    console.error(e);
+    trackEvent([
+      { event_type: "error", event_properties: { message: JSON.stringify(e) } }
+    ]);
+  }
+  
+  getStyles(); // Refresh all data including variables
+}
+
+async function removeVariables({ selectedVariables }) {
+  try {
+    await Promise.all(
+      selectedVariables.map(async (variable) => {
+        const found = await figmaWithVariables.variables.getVariableByIdAsync(variable.id);
+        if (found) {
+          found.remove();
+        }
+      })
+    );
+    
+    figma.notify(`Successfully removed ${selectedVariables.length} variables`);
+    trackEvent([
+      {
+        event_type: "removed_variables",
+        event_properties: { size: selectedVariables.length }
+      }
+    ]);
+  } catch (e) {
+    figma.notify("Encountered an error, full output in console");
+    console.error(e);
+    trackEvent([
+      { event_type: "error", event_properties: { message: JSON.stringify(e) } }
+    ]);
+  }
+  
+  getStyles(); // Refresh all data including variables
+}
+
 trackEvent([{ event_type: "launched_plugin" }]);
 
 figma.ui.onmessage = (msg) => {
   if (msg.type === "update") {
-    updateStyles(msg);
+    if (msg.variant === "VARIABLE") {
+      updateVariables(msg);
+    } else {
+      updateStyles(msg);
+    }
     return;
   }
   if (msg.type === "remove") {
-    removeStyles(msg);
+    if (msg.variant === "VARIABLE") {
+      removeVariables(msg);
+    } else {
+      removeStyles(msg);
+    }
     return;
   }
   if (msg.type === "refresh") {
