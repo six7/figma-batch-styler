@@ -1,0 +1,44 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build project
+        run: npm run build
+        continue-on-error: true  # Continue even if build fails due to known issues
+        
+      - name: Verify project structure
+        run: |
+          echo "Project structure:"
+          ls -la
+          echo "Source files:"
+          ls -la src/
+          echo "Public files:"
+          ls -la public/
+          
+      - name: Check TypeScript configuration
+        run: |
+          echo "TypeScript config:"
+          cat tsconfig.json
+          
+      - name: Check Rollup configuration
+        run: |
+          echo "Rollup config exists:"
+          ls -la rollup.config.js
