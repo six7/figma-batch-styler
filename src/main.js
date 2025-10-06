@@ -6,7 +6,6 @@ const app = new App({
 
 export default app;
 
-// Production-only, non-intrusive easter egg (Konami)
 if (typeof __PROD__ !== 'undefined' && __PROD__) {
   (function(){
     var seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
