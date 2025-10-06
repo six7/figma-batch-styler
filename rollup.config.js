@@ -12,6 +12,7 @@ import cssnano from 'cssnano';
 
 /* Inline to single html */
 import htmlBundle from 'rollup-plugin-html-bundle';
+import replace from '@rollup/plugin-replace';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -38,6 +39,10 @@ export default [{
 			dedupe: importee => importee === 'svelte' || importee.startsWith('svelte/')
 		}),
 		commonjs(),
+			replace({ preventAssignment: true, values: {
+				'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development'),
+				'__PROD__': JSON.stringify(production)
+			} }),
 		svg(),
 		postcss({
 			extensions: [ '.css' ],
@@ -75,6 +80,10 @@ export default [{
 	plugins: [
 		typescript(),
 		commonjs(),
+			replace({ preventAssignment: true, values: {
+				'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development'),
+				'__PROD__': JSON.stringify(production)
+			} }),
 		production && terser()
 	]
 }];
